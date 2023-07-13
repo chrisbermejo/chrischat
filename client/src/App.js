@@ -5,13 +5,23 @@ import io from 'socket.io-client';
 const socket = io('http://localhost:4000');
 
 function App() {
+
+    const [userID, setUserID] = useState('');
     const [message, setMessage] = useState('');
     const [messages, setMessages] = useState([]);
 
     const sendMessage = () => {
-        socket.emit('send_message', { message: message });
-        setMessage('');
+        if (message !== '') {
+            socket.emit('send_message', { message: message });
+            setMessage('');
+        } else {
+            return;
+        }
     };
+
+    socket.on("connect", () => {
+        setUserID(socket.id);
+    });
 
     useEffect(() => {
         socket.on('receive_message', (data) => {
@@ -23,21 +33,32 @@ function App() {
         };
     }, []);
 
+    useEffect(() => {
+        console.log(messages);
+        // console.log(userID);
+    }, [messages]);
+
     return (
         <div className="App">
-            <input
-                type="text"
-                placeholder="Message..."
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-            />
-            <button onClick={sendMessage}>Send</button>
             <h1>Messages:</h1>
-            <ul>
-                {messages.map((message) => (
-                    <li key={message.id}>{message.message}</li>
-                ))}
-            </ul>
+            <div className='chatroom-container'>
+                <div className='chatroom'>
+                    {messages.map((message) => (
+                        <div className={message.user === userID ? 'chatroom-message-container client-con' : 'chatroom-message-container other-con'}>
+                            <div className={message.user === userID ? 'chatroom-message client' : 'chatroom-message other'} key={message.id}>{message.message}</div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+            <div className='chatroom-inputs'>
+                <input
+                    type="text"
+                    placeholder="Message..."
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
+                />
+                <button onClick={sendMessage}>Send</button>
+            </div>
         </div>
     );
 }

@@ -17,17 +17,18 @@ const messages = [];
 const connectedUsers = new Set();
 
 io.on('connection', (socket) => {
+
     connectedUsers.add(socket.id);
     console.log(`User Connected: ${socket.id}`);
 
     socket.on('send_message', (data) => {
         const message = {
+            user: socket.id,
             id: messageId++,
             message: data.message,
         };
         messages.push(message);
-        socket.broadcast.emit('receive_message', message);
-        console.log(messages);
+        io.emit('receive_message', message);
     });
 
     socket.on('disconnect', () => {
