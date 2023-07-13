@@ -60,6 +60,7 @@ h1 {
     overflow: auto;
     padding: 0 10px;
     padding-top: 50px;
+    scrollbar-gutter: stable both-edges;
 }
 
 .chatroom {
@@ -111,14 +112,17 @@ h1 {
 }
 
 input {
+    background-color: #383a40;
     color: white;
     outline: none;
-    border: 1px solid black;
-    padding: 4px 5px;
+    border: 0px;
+    padding: 15px 10px;
+    width: 80%;
+    border-radius: 10px;
 }
 
 input::placeholder {
-    color: rgba(0, 0, 0, 0.336);
+    color: rgba(255, 255, 255, 0.336);
 }
 
 

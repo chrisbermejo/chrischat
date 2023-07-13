@@ -19,6 +19,12 @@ function App() {
         }
     };
 
+    const handleKeyPress = (e) => {
+        if (e.key === 'Enter') {
+            sendMessage();
+        }
+    }
+
     socket.on("connect", () => {
         setUserID(socket.id);
     });
@@ -40,7 +46,7 @@ function App() {
 
     return (
         <div className="App">
-            <h1>Messages:</h1>
+            <h1>Messages</h1>
             <div className='chatroom-container'>
                 <div className='chatroom'>
                     {messages.map((message) => (
@@ -56,8 +62,8 @@ function App() {
                     placeholder="Message..."
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
+                    onKeyPress={handleKeyPress}
                 />
-                <button onClick={sendMessage}>Send</button>
             </div>
         </div>
     );
