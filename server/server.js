@@ -1,26 +1,43 @@
 const express = require('express');
-const cors = require('cors');
-const bodyParser = require('body-parser');
+const http = require('http');
+const { Server } = require('socket.io');
+const { instrument } = require('@socket.io/admin-ui');
 
 const app = express();
+const server = http.createServer(app);
+const io = new Server(server, {
+    cors: {
+        origin: ['http://localhost:3000', 'https://admin.socket.io'],
+        credentials: true,
+    },
+});
 
-const PORT = 4000;
+let messageId = 1;
+const messages = [];
+const connectedUsers = new Set();
 
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: false }));
+io.on('connection', (socket) => {
+    connectedUsers.add(socket.id);
+    console.log(`User Connected: ${socket.id}`);
 
-const corsOptions = {
-    origin: '*',
-    Credential: true,
-    optionSuccesStatus: 200
-};
+    socket.on('send_message', (data) => {
+        const message = {
+            id: messageId++,
+            message: data.message,
+        };
+        messages.push(message);
+        socket.broadcast.emit('receive_message', message);
+        console.log(messages);
+    });
 
-app.use(cors(corsOptions));
+    socket.on('disconnect', () => {
+        connectedUsers.delete(socket.id);
+        console.log(`User Disconnected: ${socket.id}`);
+    });
+});
 
-app.get('/api', (req, res) => {
-    res.json({ 'users': ['1'] })
+server.listen(4000, () => {
+    console.log('Server is running on port 4000');
 })
 
-app.listen(PORT, () => {
-    console.log(`Server Started on port ${PORT}`)
-});
+instrument(io, { auth: false, mode: 'development' });
