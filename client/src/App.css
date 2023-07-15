@@ -112,50 +112,50 @@ body,
     background-color: #1e1f22;
 }
 
-.login-container {
+.form-container {
     border-radius: 6px;
     background-color: #383a40;
     padding: 2rem;
     width: 480px;
 }
 
-.login-header-container {
+.form-header-container {
     text-align: center;
 }
 
-.login-header,
-.login-subheader {
+.form-header,
+.form-subheader {
     font-weight: 600;
 }
 
-.login-header {
+.form-header {
     padding-bottom: .2rem;
 }
 
-.login-subheader {
+.form-subheader {
     color: rgba(255, 255, 255, 0.281);
 }
 
-.login-form {
+.form {
     display: flex;
     flex-direction: column;
 }
 
-.login-form-button-submit {
+.form-button-submit {
     width: 100%;
     color: white;
     background-color: #5865f2;
     padding: .5rem 0;
 }
 
-.login-form-input {
+.form-input {
     display: flex;
     flex-direction: column;
     gap: .4rem;
     margin-top: 1.5rem;
 }
 
-.login-form-input input {
+.form-input input {
     padding: .7rem .6rem;
     border-radius: 4px;
     background-color: rgba(0, 0, 0, 0.349);
@@ -166,33 +166,33 @@ body,
     font-size: .9rem;
 }
 
-.login-form-input label {
+.form-input label {
     font-size: .8rem;
     font-weight: 800;
     color: rgba(255, 255, 255, 0.774);
 }
 
-.login-form-button-submit {
+.form-button-submit {
     margin-top: 1.5rem;
 }
 
-.login-form-resigter-container {
+.form-resigter-container {
     margin-top: .5rem;
     font-size: .8rem;
 }
 
-.login-form-resigter-text-span {
+.form-resigter-text-span {
     padding-right: .2rem;
 }
 
-.login-form-resigter-text-a:link,
-.login-form-resigter-text-a:visited,
-.login-form-resigter-text-a:active {
+.form-resigter-text-a:link,
+.form-resigter-text-a:visited,
+.form-resigter-text-a:active {
     color: #00a8fc;
     text-decoration: none;
 }
 
-.login-form-resigter-text-a:hover {
+.form-resigter-text-a:hover {
     text-decoration: underline;
 }
 
