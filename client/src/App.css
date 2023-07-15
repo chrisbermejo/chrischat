@@ -1,57 +1,35 @@
 html * {
-    font-family: 'Roboto', sans-serif;
+    font-family: 'Nunito', sans-serif;
     margin: 0;
-    background-color: #313338;
+    box-sizing: border-box;
 }
+
+input[type=submit] {
+    outline: none;
+    border: none;
+}
+
 
 html,
-body {
-    height: 100%;
-}
-
+body,
 #root {
     height: 100%;
 }
 
-.App {
+.chatroom {
     display: flex;
     flex-direction: column;
     height: 100%;
+    background-color: #313338;
 }
 
-.App-logo {
-    height: 40vmin;
-    pointer-events: none;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-    .App-logo {
-        animation: App-logo-spin infinite 20s linear;
-    }
-}
-
-.App-header {
-    background-color: #282c34;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    font-size: calc(10px + 2vmin);
-    color: white;
-}
-
-.App-link {
-    color: #61dafb;
-}
-
-h1 {
+.chatroom-title {
     display: flex;
     color: white;
     justify-content: center;
 }
 
-.chatroom-container {
+.chatroom-chat-container {
     overflow-y: auto;
     height: 100%;
     display: flex;
@@ -63,7 +41,7 @@ h1 {
     scrollbar-gutter: stable both-edges;
 }
 
-.chatroom {
+.chatroom-chat {
     margin-top: auto;
     display: flex;
     gap: 10px;
@@ -104,14 +82,14 @@ h1 {
     text-align: start;
 }
 
-.chatroom-inputs {
+.chatroom-inputs-container {
     padding: 10px 0;
     margin: 10px 0;
     display: flex;
     justify-content: center;
 }
 
-input {
+.chatroom-inputs {
     background-color: #383a40;
     color: white;
     outline: none;
@@ -121,17 +99,99 @@ input {
     border-radius: 10px;
 }
 
-input::placeholder {
+.chatroom-inputs::placeholder {
     color: rgba(255, 255, 255, 0.336);
 }
 
+.form-wrapper {
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    background-color: #1e1f22;
+}
 
-@keyframes App-logo-spin {
-    from {
-        transform: rotate(0deg);
-    }
+.login-container {
+    border-radius: 6px;
+    background-color: #383a40;
+    padding: 2rem;
+    width: 480px;
+}
 
-    to {
-        transform: rotate(360deg);
-    }
+.login-header-container {
+    text-align: center;
+}
+
+.login-header,
+.login-subheader {
+    font-weight: 600;
+}
+
+.login-header {
+    padding-bottom: .2rem;
+}
+
+.login-subheader {
+    color: rgba(255, 255, 255, 0.281);
+}
+
+.login-form {
+    display: flex;
+    flex-direction: column;
+}
+
+.login-form-button-submit {
+    width: 100%;
+    color: white;
+    background-color: #5865f2;
+    padding: .5rem 0;
+}
+
+.login-form-input {
+    display: flex;
+    flex-direction: column;
+    gap: .4rem;
+    margin-top: 1.5rem;
+}
+
+.login-form-input input {
+    padding: .7rem .6rem;
+    border-radius: 4px;
+    background-color: rgba(0, 0, 0, 0.349);
+    outline: none;
+    border: none;
+    color: white;
+    font-weight: 100;
+    font-size: .9rem;
+}
+
+.login-form-input label {
+    font-size: .8rem;
+    font-weight: 800;
+    color: rgba(255, 255, 255, 0.774);
+}
+
+.login-form-button-submit {
+    margin-top: 1.5rem;
+}
+
+.login-form-resigter-container {
+    margin-top: .5rem;
+    font-size: .8rem;
+}
+
+.login-form-resigter-text-span {
+    padding-right: .2rem;
+}
+
+.login-form-resigter-text-a:link,
+.login-form-resigter-text-a:visited,
+.login-form-resigter-text-a:active {
+    color: #00a8fc;
+    text-decoration: none;
+}
+
+.login-form-resigter-text-a:hover {
+    text-decoration: underline;
 }
