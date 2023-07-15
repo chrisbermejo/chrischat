@@ -195,3 +195,7 @@ body,
 .login-form-resigter-text-a:hover {
     text-decoration: underline;
 }
+
+.required__star{
+    color: red;
+}

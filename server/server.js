@@ -36,8 +36,6 @@ io.on('connection', (socket) => {
             user: socket.id
         });
 
-        console.log(newMessages)
-
         await newMessages.save();
 
         io.emit('receive_message', messageObj);

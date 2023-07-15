@@ -10,11 +10,11 @@ function App() {
                 </div>
                 <form className='login-form'>
                     <div className='login-form-input'>
-                        <label for='username' >USERNAME</label>
-                        <input type='email' name='username' required />
+                        <label for='email' >EMAIL <span className='required__star'>*</span></label>
+                        <input type='email' name='email' required />
                     </div>
                     <div className='login-form-input'>
-                        <label for='password' >PASSWORD</label>
+                        <label for='password' >PASSWORD <span className='required__star'>*</span></label>
                         <input type='password' name='password' required />
                     </div>
                     <input className='login-form-button-submit' type='submit' value='Login' />
