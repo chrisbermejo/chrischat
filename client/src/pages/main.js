@@ -47,9 +47,9 @@ function Chatroom() {
             <h1 className='chatroom-title'>Messages</h1>
             <div className='chatroom-chat-container'>
                 <div className='chatroom-chat'>
-                    {messages.map((message) => (
+                    {messages.map((message, index) => (
                         <div className={message.user === userID ? 'chatroom-message-container client-con' : 'chatroom-message-container other-con'}>
-                            <div className={message.user === userID ? 'chatroom-message client' : 'chatroom-message other'} key={message.id}>{message.message}</div>
+                            <div className={message.user === userID ? 'chatroom-message client' : 'chatroom-message other'} key={index}>{message.message}</div>
                         </div>
                     ))}
                 </div>

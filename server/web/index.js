@@ -10,17 +10,14 @@ module.exports = function setupWebSocket(server) {
         },
     });
 
-    let messageId = 1;
-    const connectedUsers = new Set();
+    const channel = io.of('/channel');
 
-    io.of('/channel').on('connection', (socket) => {
-        connectedUsers.add(socket.id);
+    channel.on('connection', (socket) => {
         console.log(`User Connected: ${socket.id}`);
 
         socket.on('send_message', async (data) => {
             const messageObj = {
                 user: socket.id,
-                id: messageId++,
                 message: data.message,
             };
 
@@ -31,11 +28,10 @@ module.exports = function setupWebSocket(server) {
 
             await newMessages.save();
 
-            io.of('/channel').emit('receive_message', messageObj);
+            channel.emit('receive_message', messageObj);
         });
 
         socket.on('disconnect', () => {
-            connectedUsers.delete(socket.id);
             console.log(`User Disconnected: ${socket.id}`);
         });
     });
