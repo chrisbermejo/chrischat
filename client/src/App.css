@@ -9,6 +9,9 @@ input[type=submit] {
     border: none;
 }
 
+/* input:-internal-autofill-selected {
+    background-color: none;
+} */
 
 html,
 body,
@@ -113,7 +116,7 @@ body,
 }
 
 .form-container {
-    border-radius: 6px;
+    border-radius: 8px;
     background-color: #383a40;
     padding: 2rem;
     width: 480px;
@@ -196,6 +199,6 @@ body,
     text-decoration: underline;
 }
 
-.required__star{
+.required__star {
     color: red;
 }

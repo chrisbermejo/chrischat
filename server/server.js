@@ -1,13 +1,41 @@
 const express = require('express');
 const http = require('http');
+const cors = require('cors');
+
 const { Server } = require('socket.io');
 const { instrument } = require('@socket.io/admin-ui');
 
 require('./database');
 
-const messages = require('./database/schemas/message');
+const Message = require('./database/schemas/message');
+const User = require('./database/schemas/user');
 
 const app = express();
+
+app.use(cors());
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
+
+app.post('/register', async (req, res) => {
+
+    const { email, password } = req.body;
+
+    try {
+        const user = new User({
+            user: email,
+            password: password
+        });
+        await user.save();
+        res.status(201).send({ message: 'User created successfully' });
+    } catch (error) {
+        res.status(400).send({ error });
+    }
+});
+
+app.listen(5000, () => {
+    console.log('Server is running on port 5000');
+});
+
 const server = http.createServer(app);
 const io = new Server(server, {
     cors: {
@@ -31,7 +59,7 @@ io.on('connection', (socket) => {
             message: data.message,
         };
 
-        const newMessages = new messages({
+        const newMessages = new Message({
             message: data.message,
             user: socket.id
         });

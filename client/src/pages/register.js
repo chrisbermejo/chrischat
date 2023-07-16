@@ -1,39 +1,38 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
 
 function App() {
 
-  const [formData, setFormData] = useState({
-    email: '',
-    password: ''
-  });
+    const navigate = useNavigate();
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+    const handleSubmit = async (e) => {
+        e.preventDefault();
 
-    setFormData({
-      email: e.target.email.value,
-      password: e.target.password.value  
-    });
+        const updatedFormData = {
+            email: e.target.email.value,
+            password: e.target.password.value
+        };
 
-    try {
-      const response = await fetch('/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(formData)
-      });
-      
-      if(response.ok) {
-        console.log('success');
-      } else {
-        console.log('error');
-      }
-    } catch (error) {
-      console.log(error);
-    }
+        try {
+            const response = await fetch('http://localhost:5000/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(updatedFormData)
+            });
 
-  }
+            if (response.ok) {
+                console.log('success');
+                navigate('/channel');
+            } else {
+                console.log('failed');
+            }
+        } catch (error) {
+            console.log(error);
+        }
+    };
+
     return (
         <div className='form-wrapper'>
             <div className='form-container'>
@@ -42,11 +41,11 @@ function App() {
                 </div>
                 <form className='form' onSubmit={handleSubmit}>
                     <div className='form-input'>
-                        <label for='email' >EMAIL</label>
-                        <input type='email' name='email' required />
+                        <label htmlFor='email' >EMAIL</label>
+                        <input type='text' name='email' required />
                     </div>
                     <div className='form-input'>
-                        <label for='password' >PASSWORD</label>
+                        <label htmlFor='password' >PASSWORD</label>
                         <input type='password' name='password' required />
                     </div>
                     <input className='form-button-submit' type='submit' value='Continue' />

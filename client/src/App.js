@@ -9,7 +9,7 @@ export default function App() {
             <Routes>
                 <Route path='/login' element={<Login />} />
                 <Route path="/register" element={<Register />} />
-                <Route path="/index" element={<Main />} />
+                <Route index path="/channel" element={<Main />} />
             </Routes>
         </BrowserRouter>
     );
