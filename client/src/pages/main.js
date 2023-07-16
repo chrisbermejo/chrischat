@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import '../App.css';
-import io from 'socket.io-client';
+import {io} from 'socket.io-client';
 
 const socket = io('http://localhost:4000/channel');
 
@@ -49,7 +49,7 @@ function Chatroom() {
                 <div className='chatroom-chat'>
                     {messages.map((message, index) => (
                         <div className={message.user === userID ? 'chatroom-message-container client-con' : 'chatroom-message-container other-con'}>
-                            <div className={message.user === userID ? 'chatroom-message client' : 'chatroom-message other'} key={index}>{message.message}</div>
+                            <div className={message.user === userID ? 'chatroom-message client' : 'chatroom-message other'} key={index}>{message.user}: {message.message}</div>
                         </div>
                     ))}
                 </div>
