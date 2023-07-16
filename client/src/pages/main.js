@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import '../App.css';
-import {io} from 'socket.io-client';
+import { io } from 'socket.io-client';
 
-const socket = io('http://localhost:4000/channel');
+const socket = io('http://localhost:8000/channel');
 
 function Chatroom() {
     const [userID, setUserID] = useState('');
@@ -25,13 +25,12 @@ function Chatroom() {
     };
 
     useEffect(() => {
-        socket.on('connect', () => {
-            setUserID(socket.id);
-        });
 
         socket.on('receive_message', (data) => {
             setMessages((prevMessages) => [...prevMessages, data]);
         });
+
+        setUserID(socket.id);
 
         return () => {
             socket.off('receive_message');
