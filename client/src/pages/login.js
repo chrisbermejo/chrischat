@@ -40,7 +40,7 @@ function App() {
                     <h2 className='form-header'>Welcome back!</h2>
                     <h4 className='form-subheader'>We're so excited to see you again!</h4>
                 </div>
-                <form className='form'>
+                <form className='form' onSubmit={handleSubmit}>
                     <div className='form-input'>
                         <label htmlFor='email' >EMAIL <span className='required__star'>*</span></label>
                         <input type='text' name='email' required />

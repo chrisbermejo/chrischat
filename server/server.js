@@ -47,7 +47,7 @@ const io = new Server(server, {
 let messageId = 1;
 const connectedUsers = new Set();
 
-io.on('connection', (socket) => {
+io.of('/channel').on('connection', (socket) => {
 
     connectedUsers.add(socket.id);
     console.log(`User Connected: ${socket.id}`);
@@ -66,7 +66,7 @@ io.on('connection', (socket) => {
 
         await newMessages.save();
 
-        io.emit('receive_message', messageObj);
+        io.of('/channel').emit('receive_message', messageObj);
     });
 
     socket.on('disconnect', () => {
