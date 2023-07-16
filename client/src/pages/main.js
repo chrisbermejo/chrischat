@@ -5,6 +5,8 @@ import { io } from 'socket.io-client';
 const socket = io('http://localhost:8000/channel');
 
 function Chatroom() {
+
+
     const [userID, setUserID] = useState('');
     const [message, setMessage] = useState('');
     const [messages, setMessages] = useState([]);
@@ -30,7 +32,6 @@ function Chatroom() {
             setMessages((prevMessages) => [...prevMessages, data]);
         });
 
-        setUserID(socket.id);
 
         return () => {
             socket.off('receive_message');
@@ -41,14 +42,20 @@ function Chatroom() {
         console.log(messages);
     }, [messages]);
 
+    useEffect(() => {
+            socket.on('connect', () => {
+              setUserID(socket.id);
+            });
+      }, [socket]);
+
     return (
         <div className="chatroom">
             <h1 className='chatroom-title'>Messages</h1>
             <div className='chatroom-chat-container'>
                 <div className='chatroom-chat'>
                     {messages.map((message, index) => (
-                        <div className={message.user === userID ? 'chatroom-message-container client-con' : 'chatroom-message-container other-con'}>
-                            <div className={message.user === userID ? 'chatroom-message client' : 'chatroom-message other'} key={index}>{message.user}: {message.message}</div>
+                        <div key={index} className={message.user === userID ? 'chatroom-message-container client-con' : 'chatroom-message-container other-con'}>
+                            <div className={message.user === userID ? 'chatroom-message client' : 'chatroom-message other'}>{message.user}: {message.message}</div>
                         </div>
                     ))}
                 </div>
