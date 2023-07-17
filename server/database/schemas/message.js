@@ -1,12 +1,10 @@
 const mongoose = require('mongoose');
 
 const MessageSchema = new mongoose.Schema({
-    timestamp: {
-        type: Date,
-        default: Date.now
-    },
+    user: String,
     message: String,
-    user: String
+    date: Date,
+    time: String,
 });
 
 const Message = mongoose.model('Message', MessageSchema);

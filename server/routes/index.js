@@ -8,11 +8,12 @@ const JWT_SERECT = '123456';
 
 router.post('/register', async (req, res) => {
 
-    const { email, password } = req.body;
+    const { username, email, password } = req.body;
 
     try {
         const user = new User({
-            user: email,
+            username: username,
+            email: email,
             password: password
         });
         await user.save();
@@ -23,11 +24,11 @@ router.post('/register', async (req, res) => {
 });
 
 router.post('/login', async (req, res) => {
-    const user = await User.findOne({ user: req.body.email, password: req.body.password });
+    const user = await User.findOne({ username: req.body.username, password: req.body.password });
     if (!user) {
         return res.status(400).send({ message: 'User not found' });
     } else {
-        const token = jwt.sign({ user: req.body.email }, JWT_SERECT, { expiresIn: '1m' });
+        const token = jwt.sign({ user: req.body.username }, JWT_SERECT, { expiresIn: '1m' });
         return res.status(200).send({ token });
     }
 });

@@ -15,7 +15,7 @@ function Login() {
         e.preventDefault();
 
         const updatedFormData = {
-            email: e.target.email.value,
+            username: e.target.username.value,
             password: e.target.password.value
         };
 
@@ -54,8 +54,8 @@ function Login() {
                 </div>
                 <form className='form' onSubmit={handleSubmit}>
                     <div className='form-input'>
-                        <label htmlFor='email' >EMAIL <span className='required__star'>*</span></label>
-                        <input type='text' name='email' required />
+                        <label htmlFor='username' >USERNAME</label>
+                        <input type='text' name='username' required />
                     </div>
                     <div className='form-input'>
                         <label htmlFor='password' >PASSWORD <span className='required__star'>*</span></label>

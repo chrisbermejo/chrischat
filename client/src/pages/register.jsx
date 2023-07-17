@@ -9,6 +9,7 @@ function App() {
         e.preventDefault();
 
         const updatedFormData = {
+            username: e.target.username.value,
             email: e.target.email.value,
             password: e.target.password.value
         };
@@ -40,6 +41,10 @@ function App() {
                     <h3 className='form-header'>Create an account</h3>
                 </div>
                 <form className='form' onSubmit={handleSubmit}>
+                    <div className='form-input'>
+                        <label htmlFor='username' >USERNAME</label>
+                        <input type='text' name='username' required />
+                    </div>
                     <div className='form-input'>
                         <label htmlFor='email' >EMAIL</label>
                         <input type='text' name='email' required />

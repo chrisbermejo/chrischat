@@ -16,19 +16,18 @@ module.exports = function setupWebSocket(server) {
 
         console.log(`User Connected: ${socket.id}`);
 
-        // channel.emit('established');
-
         socket.on('send_message', async (data) => {
+
             const messageObj = {
-                user: socket.id,
+                id: socket.id,
                 message: data.message,
+                date: data.date,
+                time: data.time
             };
 
-            const newMessages = new Message({
-                message: data.message,
-                user: socket.id,
-            });
+            console.log(messageObj);
 
+            const newMessages = new Message(messageObj);
             await newMessages.save();
 
             channel.emit('receive_message', messageObj);
