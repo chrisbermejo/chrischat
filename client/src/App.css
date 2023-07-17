@@ -67,12 +67,12 @@ body,
     width: fit-content;
     min-height: 30px;
     display: flex;
-    align-items: center;
     border-radius: 5px;
     padding: .2rem .5rem;
     max-width: 45%;
     color: white;
     word-break: normal;
+    flex-direction: column;
 }
 
 .client {
@@ -83,6 +83,19 @@ body,
 .other {
     background-color: rgb(66, 211, 97);
     text-align: start;
+}
+
+.chatroom-message-username {
+    display: flex;
+}
+
+.chatroom-message-text {
+    display: flex;
+}
+
+.chatroom-message-time {
+    display: flex;
+    justify-content: flex-end;
 }
 
 .chatroom-inputs-container {

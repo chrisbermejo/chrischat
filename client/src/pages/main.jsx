@@ -70,9 +70,10 @@ function Chatroom() {
                     {messages.map((message, index) => (
                         <div key={index} ref={index === messages.length - 1 ? chatMessage : null} className={message.id === socketID ? 'chatroom-message-container client-con' : 'chatroom-message-container other-con'}>
                             <div className={message.id === socketID ? 'chatroom-message client' : 'chatroom-message other'}>
-                                {user}: {message.message}
+                                <div className='chatroom-message-username'><span>-</span>{user}</div>
+                                <div className='chatroom-message-text'>{message.message}</div>
+                                <div className='chatroom-message-time'>{message.time}</div>
                             </div>
-                            <div>{message.time}</div>
                         </div>
                     ))}
                 </div>
