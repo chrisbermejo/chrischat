@@ -6,8 +6,7 @@ import useSocket from '../hooks/useSocket';
 
 function Login() {
 
-    const { setSocket, setSocketID, socketID } = useSocket();
-    console.log('Log page socketID: ', socketID);
+    const { setSocket, setSocketID } = useSocket();
     const { login } = useAuth();
 
     const navigate = useNavigate();
@@ -33,7 +32,6 @@ function Login() {
                 const token = await response.json();
                 const socket = createSocket();
                 socket.on('connect', () => {
-                    console.log(socket)
                     setSocket(socket);
                     setSocketID(socket.id);
                     login(token.token);
