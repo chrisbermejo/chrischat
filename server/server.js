@@ -11,8 +11,8 @@ const corsOptions = {
     methods: 'GET, POST, OPTIONS',
     allowedHeaders: 'Origin, X-Requested-With, Content-Type, Accept',
 };
-
 app.use(cors(corsOptions));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
@@ -24,9 +24,9 @@ const WebSocket = require('./web/index');
 WebSocket(server);
 
 server.listen(8000, () => {
-    console.log('Server is running on port 4000');
+    console.log('Server is running on port 8000');
 });
 
 app.listen(4000, () => {
-    console.log('Server is running on port 5000');
+    console.log('Server is running on port 4000');
 });

@@ -1,7 +1,10 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import useAuth from '../Hooks/useAuth';
 
-function App() {
+function Login() {
+
+    const { login } = useAuth();
 
     const navigate = useNavigate();
 
@@ -23,7 +26,8 @@ function App() {
             });
 
             if (response.ok) {
-                console.log('success');
+                const json = await response.json();
+                login(json.token);
                 navigate('/channel');
             } else {
                 console.log('failed');
@@ -62,4 +66,4 @@ function App() {
     );
 }
 
-export default App;
+export default Login;

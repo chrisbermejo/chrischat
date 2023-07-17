@@ -28,6 +28,12 @@ function Chatroom() {
 
     useEffect(() => {
 
+        setUserID(socket.id);
+
+        // socket.on('connect', () => {
+        //     setUserID(socket.id);
+        // });
+
         socket.on('receive_message', (data) => {
             setMessages((prevMessages) => [...prevMessages, data]);
         });
@@ -41,12 +47,6 @@ function Chatroom() {
     useEffect(() => {
         console.log(messages);
     }, [messages]);
-
-    useEffect(() => {
-            socket.on('connect', () => {
-              setUserID(socket.id);
-            });
-      }, [socket]);
 
     return (
         <div className="chatroom">
