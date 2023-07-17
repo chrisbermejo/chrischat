@@ -1,8 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import '../App.css';
-import { io } from 'socket.io-client';
-
-const socket = io('http://localhost:8000/channel');
+import { socket } from '../socket';
 
 function Chatroom() {
 
@@ -10,6 +8,8 @@ function Chatroom() {
     const [socketID, setSocketID] = useState('');
     const [message, setMessage] = useState('');
     const [messages, setMessages] = useState([]);
+
+    const chatMessage = useRef(null);
 
     const sendMessage = () => {
         if (message !== '') {
@@ -42,7 +42,9 @@ function Chatroom() {
     }, []);
 
     useEffect(() => {
-        console.log(messages);
+        if (chatMessage.current) {
+            chatMessage.current.scrollIntoView();
+        }
     }, [messages]);
 
     return (
@@ -51,8 +53,10 @@ function Chatroom() {
             <div className='chatroom-chat-container'>
                 <div className='chatroom-chat'>
                     {messages.map((message, index) => (
-                        <div key={index} className={message.user === socketID ? 'chatroom-message-container client-con' : 'chatroom-message-container other-con'}>
-                            <div className={message.user === socketID ? 'chatroom-message client' : 'chatroom-message other'}>{message.user}: {message.message}</div>
+                        <div key={index} ref={index === messages.length - 1 ? chatMessage : null} className={message.user === socketID ? 'chatroom-message-container client-con' : 'chatroom-message-container other-con'}>
+                            <div className={message.user === socketID ? 'chatroom-message client' : 'chatroom-message other'}>
+                                {message.user}: {message.message}
+                            </div>
                         </div>
                     ))}
                 </div>
