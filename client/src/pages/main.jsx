@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import '../App.css';
-import { socket } from '../socket';
+import useSocket from '../hooks/useSocket';
 
 function Chatroom() {
 
+    const { socket, socketID } = useSocket(); // Access the socket instance from the socket context
 
-    const [socketID, setSocketID] = useState('');
     const [message, setMessage] = useState('');
     const [messages, setMessages] = useState([]);
 
@@ -27,19 +27,16 @@ function Chatroom() {
     };
 
     useEffect(() => {
+        if (socket) {
+            socket.on('receive_message', (data) => {
+                setMessages((prevMessages) => [...prevMessages, data]);
+            });
 
-        setSocketID(socket.id);
-
-
-        socket.on('receive_message', (data) => {
-            setMessages((prevMessages) => [...prevMessages, data]);
-        });
-
-
-        return () => {
-            socket.off('receive_message');
-        };
-    }, []);
+            return () => {
+                socket.off('receive_message');
+            };
+        }
+    }, [socket]);
 
     useEffect(() => {
         if (chatMessage.current) {

@@ -13,8 +13,10 @@ module.exports = function setupWebSocket(server) {
     const channel = io.of('/channel');
 
     channel.on('connection', (socket) => {
-        
+
         console.log(`User Connected: ${socket.id}`);
+
+        // channel.emit('established');
 
         socket.on('send_message', async (data) => {
             const messageObj = {

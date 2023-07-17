@@ -1,9 +1,13 @@
 import React from 'react';
+import { createSocket } from '../socket'; // Import the createSocket function
 import { useNavigate } from 'react-router-dom';
 import useAuth from '../hooks/useAuth';
+import useSocket from '../hooks/useSocket';
 
 function Login() {
 
+    const { setSocket, setSocketID, socketID } = useSocket();
+    console.log('Log page socketID: ', socketID);
     const { login } = useAuth();
 
     const navigate = useNavigate();
@@ -27,8 +31,14 @@ function Login() {
 
             if (response.ok) {
                 const token = await response.json();
-                login(token.token);
-                navigate('/channel');
+                const socket = createSocket();
+                socket.on('connect', () => {
+                    console.log(socket)
+                    setSocket(socket);
+                    setSocketID(socket.id);
+                    login(token.token);
+                    navigate('/channel');
+                });
             } else {
                 console.log('failed');
             }

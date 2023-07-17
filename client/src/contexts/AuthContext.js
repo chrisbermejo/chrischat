@@ -8,7 +8,7 @@ export const AuthProvider = ({ children }) => {
 
     const cookies = new Cookie();
     const initialToken = cookies.get('token');
-    const initialUser = initialToken ? jwt(initialToken).user : '';
+    const initialUser = initialToken ? jwt(initialToken).user : null;
 
     const [user, setUser] = useState(initialUser);
 
