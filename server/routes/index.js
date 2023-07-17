@@ -28,7 +28,7 @@ router.post('/login', async (req, res) => {
         return res.status(400).send({ message: 'User not found' });
     } else {
         const token = jwt.sign({ user: req.body.email }, JWT_SERECT, { expiresIn: '1h' });
-        return res.status(200).send(token);
+        return res.status(200).send({ token });
     }
 });
 

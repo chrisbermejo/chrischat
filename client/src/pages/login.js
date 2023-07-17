@@ -26,8 +26,8 @@ function Login() {
             });
 
             if (response.ok) {
-                const json = await response.json();
-                login(json.token);
+                const token = await response.json();
+                login(token.token);
                 navigate('/channel');
             } else {
                 console.log('failed');

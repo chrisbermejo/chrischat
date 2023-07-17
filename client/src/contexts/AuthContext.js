@@ -7,8 +7,10 @@ export const AuthContext = createContext();
 export const AuthProvider = ({ children }) => {
 
     const cookies = new Cookie();
+    const initialToken = cookies.get('token');
+    const initialUser = initialToken ? jwt(initialToken).user : '';
 
-    const [user, setUser] = useState('');
+    const [user, setUser] = useState(initialUser);
 
     const login = (token) => {
         const decoded = jwt(token);

@@ -7,7 +7,7 @@ const socket = io('http://localhost:8000/channel');
 function Chatroom() {
 
 
-    const [userID, setUserID] = useState('');
+    const [socketID, setSocketID] = useState('');
     const [message, setMessage] = useState('');
     const [messages, setMessages] = useState([]);
 
@@ -28,11 +28,8 @@ function Chatroom() {
 
     useEffect(() => {
 
-        setUserID(socket.id);
+        setSocketID(socket.id);
 
-        // socket.on('connect', () => {
-        //     setUserID(socket.id);
-        // });
 
         socket.on('receive_message', (data) => {
             setMessages((prevMessages) => [...prevMessages, data]);
@@ -54,8 +51,8 @@ function Chatroom() {
             <div className='chatroom-chat-container'>
                 <div className='chatroom-chat'>
                     {messages.map((message, index) => (
-                        <div key={index} className={message.user === userID ? 'chatroom-message-container client-con' : 'chatroom-message-container other-con'}>
-                            <div className={message.user === userID ? 'chatroom-message client' : 'chatroom-message other'}>{message.user}: {message.message}</div>
+                        <div key={index} className={message.user === socketID ? 'chatroom-message-container client-con' : 'chatroom-message-container other-con'}>
+                            <div className={message.user === socketID ? 'chatroom-message client' : 'chatroom-message other'}>{message.user}: {message.message}</div>
                         </div>
                     ))}
                 </div>
