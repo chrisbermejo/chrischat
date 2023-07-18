@@ -19,19 +19,25 @@ body,
     height: 100%;
 }
 
-.App{
+.App {
     display: flex;
     height: 100%;
     width: 100%;
 }
 
-.Nav{
+.Nav {
     background-color: #2b2d30;
     color: white;
+    width: 130px;
 }
 
-.Nav div{
-    padding: 0 .5rem;
+.Nav div {
+    padding: .4rem .5rem;
+}
+
+.Nav div:hover {
+    cursor: pointer;
+    background-color: rgba(0, 162, 255, 0.185);
 }
 
 .chatroom {

@@ -5,8 +5,8 @@ import useAuth from '../hooks/useAuth';
 
 import '../App.css';
 
-const fetchData = async () => {
-    const response = await fetch('http://localhost:4000/messages', {
+const fetchRoom = async (user) => {
+    const response = await fetch(`http://localhost:4000/room/${user}`, {
         method: 'GET',
         headers: {
             'Content-Type': 'application/json'
@@ -27,14 +27,23 @@ function Chatroom() {
     const { user, userProfilePicture } = useAuth();
 
     const [message, setMessage] = useState('');
+
     const [messages, setMessages] = useState([]);
     const [fetchedMessages, setfetchedMessages] = useState([]);
+    const [fetchedRooms, setfetchedRooms] = useState([]);
+
+    const [roomID, setRoomID] = useState('');
+    const [roomName, setRoomName] = useState('');
 
     const chatMessage = useRef(null);
 
     const sendMessage = () => {
         if (message !== '') {
+
+            socket.emit('join', roomID);
+
             socket.emit('send_message', {
+                room: roomID,
                 id: socketID,
                 user: user,
                 message: message,
@@ -57,23 +66,55 @@ function Chatroom() {
         }
     };
 
+
+    const fetchData = async (roomID) => {
+        const response = await fetch(`http://localhost:4000/messages/room/${roomID}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        if (response.ok) {
+            const data = await response.json();
+            setfetchedMessages(data);
+        } else {
+            console.log('failed');
+        }
+    };
+
     const handleKeyPress = (e) => {
         if (e.key === 'Enter') {
             sendMessage();
         }
     };
 
+    const leaveRoom = () => {
+        if (roomID) {
+            socket.emit('leave', roomID);
+        }
+    };
+
     useEffect(() => {
-        if (socket) {
+        if (socket && roomID) {
+
+            socket.emit('join', roomID);
+
+            console.log(socket)
+
             socket.on('receive_message', (data) => {
+                console.log('message received')
                 setMessages((prevMessages) => [...prevMessages, data]);
             });
 
-            return () => {
-                socket.off('receive_message');
-            };
+
         }
-    }, [socket]);
+
+        return () => {
+            if (socket) {
+                socket.off('receive_message');
+            }
+        };
+    }, [socket, roomID]);
 
     useEffect(() => {
         if (chatMessage.current) {
@@ -82,23 +123,27 @@ function Chatroom() {
     }, [messages, fetchedMessages]);
 
     useEffect(() => {
-        if (fetchedMessages.length >= 0) {
-            fetchData().then(data => {
-                setfetchedMessages(data);
+
+        if (user) {
+            fetchRoom(user).then(data => {
+                setfetchedRooms(data);
             });
-        }
+        };
+
     }, []);
 
     return (
         <div className='App'>
             <div className='Nav'>
-                <div>Chris</div>
-                <div>Joe</div>
-                <div>John</div>
-                <div>Edwin</div>
+                {fetchedRooms.map((room, index) => (
+                    <div key={room.name} onClick={() => { leaveRoom(); setRoomID(room.id); fetchData(room.id); setMessages([]); setRoomName(room.name); }}>
+                        {room.name}
+                    </div>
+                ))}
             </div>
             <div className="chatroom">
                 <h1 className='chatroom-title'>Messages</h1>
+                <h4 className='chatroom-title'>{roomName}</h4>
                 <div className='chatroom-chat-container'>
                     <div className='chatroom-chat'>
                         {fetchedMessages.map((message, index) => (

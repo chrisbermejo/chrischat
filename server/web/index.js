@@ -16,9 +16,20 @@ module.exports = function setupWebSocket(server) {
 
         console.log(`User Connected: ${socket.id}`);
 
+        socket.on('join', (room) => {
+            socket.join(room);
+            console.log(`User Joined Room: ${room}`)
+        });
+
+        socket.on('leave', (room) => {
+            socket.leave(room);
+            console.log(`User Left Room: ${room}`);
+        });
+
         socket.on('send_message', async (data) => {
 
             const messageObj = {
+                room: data.room,
                 id: socket.id,
                 user: data.user,
                 message: data.message,
@@ -29,7 +40,7 @@ module.exports = function setupWebSocket(server) {
             const newMessages = new Message(messageObj);
             await newMessages.save();
 
-            channel.emit('receive_message', messageObj);
+            channel.to(data.room).emit('receive_message', messageObj);
         });
 
         socket.on('disconnect', () => {
