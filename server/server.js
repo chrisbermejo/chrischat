@@ -20,7 +20,7 @@ const routes = require('./routes/index');
 app.use('/', routes);
 
 const room = require('./routes/room');
-app.use('/room', room);
+app.use('/', room);
 
 const server = http.createServer(app);
 const WebSocket = require('./web/index');

@@ -6,7 +6,7 @@ import useAuth from '../hooks/useAuth';
 import '../App.css';
 
 const fetchData = async () => {
-    const response = await fetch('http://localhost:4000/room/1', {
+    const response = await fetch('http://localhost:4000/messages', {
         method: 'GET',
         headers: {
             'Content-Type': 'application/json'
@@ -90,41 +90,49 @@ function Chatroom() {
     }, []);
 
     return (
-        <div className="chatroom">
-            <h1 className='chatroom-title'>Messages</h1>
-            <div className='chatroom-chat-container'>
-                <div className='chatroom-chat'>
-                    {fetchedMessages.map((message, index) => (
-                        <div key={index} ref={index === fetchedMessages.length - 1 ? chatMessage : null} className={message.user === user ? 'chatroom-message-container client-con' : 'chatroom-message-container other-con'}>
-                            <div className={message.user === user ? 'chatroom-message client' : 'chatroom-message other'}>
-                                <div className='chatroom-message-username'><span>-</span>{message.user === user ? user : message.user}</div>
-                                <div className='chatroom-message-text'>{message.message}</div>
-                                <div className='chatroom-message-time'>{message.time}</div>
-                            </div>
-                            <img src={message.user === user ? userProfilePicture : 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png'} className='chatroom-message-avatar' alt='avatar' />
-                        </div>
-                    ))}
-                    {messages.map((message, index) => (
-                        <div key={index} ref={index === messages.length - 1 ? chatMessage : null} className={message.user === user ? 'chatroom-message-container client-con' : 'chatroom-message-container other-con'}>
-                            <div className={message.user === user ? 'chatroom-message client' : 'chatroom-message other'}>
-                                <div className='chatroom-message-username'><span>-</span>{message.user === user ? user : message.user}</div>
-                                <div className='chatroom-message-text'>{message.message}</div>
-                                <div className='chatroom-message-time'>{message.time}</div>
-                            </div>
-                            <img src={message.user === user ? userProfilePicture : 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png'} className='chatroom-message-avatar' alt='avatar' />
-                        </div>
-                    ))}
-                </div>
+        <div className='App'>
+            <div className='Nav'>
+                <div>Chris</div>
+                <div>Joe</div>
+                <div>John</div>
+                <div>Edwin</div>
             </div>
-            <div className='chatroom-inputs-container'>
-                <input
-                    className='chatroom-inputs'
-                    type="text"
-                    placeholder="Message..."
-                    value={message}
-                    onChange={(e) => setMessage(e.target.value)}
-                    onKeyPress={handleKeyPress}
-                />
+            <div className="chatroom">
+                <h1 className='chatroom-title'>Messages</h1>
+                <div className='chatroom-chat-container'>
+                    <div className='chatroom-chat'>
+                        {fetchedMessages.map((message, index) => (
+                            <div key={index} ref={index === fetchedMessages.length - 1 ? chatMessage : null} className={message.user === user ? 'chatroom-message-container client-con' : 'chatroom-message-container other-con'}>
+                                <div className={message.user === user ? 'chatroom-message client' : 'chatroom-message other'}>
+                                    <div className='chatroom-message-username'><span>-</span>{message.user === user ? user : message.user}</div>
+                                    <div className='chatroom-message-text'>{message.message}</div>
+                                    <div className='chatroom-message-time'>{message.time}</div>
+                                </div>
+                                <img src={message.user === user ? userProfilePicture : 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png'} className='chatroom-message-avatar' alt='avatar' />
+                            </div>
+                        ))}
+                        {messages.map((message, index) => (
+                            <div key={index} ref={index === messages.length - 1 ? chatMessage : null} className={message.user === user ? 'chatroom-message-container client-con' : 'chatroom-message-container other-con'}>
+                                <div className={message.user === user ? 'chatroom-message client' : 'chatroom-message other'}>
+                                    <div className='chatroom-message-username'><span>-</span>{message.user === user ? user : message.user}</div>
+                                    <div className='chatroom-message-text'>{message.message}</div>
+                                    <div className='chatroom-message-time'>{message.time}</div>
+                                </div>
+                                <img src={message.user === user ? userProfilePicture : 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png'} className='chatroom-message-avatar' alt='avatar' />
+                            </div>
+                        ))}
+                    </div>
+                </div>
+                <div className='chatroom-inputs-container'>
+                    <input
+                        className='chatroom-inputs'
+                        type="text"
+                        placeholder="Message..."
+                        value={message}
+                        onChange={(e) => setMessage(e.target.value)}
+                        onKeyPress={handleKeyPress}
+                    />
+                </div>
             </div>
         </div>
     );
