@@ -19,6 +19,9 @@ app.use(express.urlencoded({ extended: false }));
 const routes = require('./routes/index');
 app.use('/', routes);
 
+const room = require('./routes/room');
+app.use('/room', room);
+
 const server = http.createServer(app);
 const WebSocket = require('./web/index');
 WebSocket(server);

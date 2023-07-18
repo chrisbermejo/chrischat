@@ -20,12 +20,11 @@ module.exports = function setupWebSocket(server) {
 
             const messageObj = {
                 id: socket.id,
+                user: data.user,
                 message: data.message,
                 date: data.date,
                 time: data.time
             };
-
-            console.log(messageObj);
 
             const newMessages = new Message(messageObj);
             await newMessages.save();

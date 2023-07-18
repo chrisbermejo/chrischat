@@ -53,6 +53,8 @@ body,
 
 .chatroom-message-container {
     display: flex;
+    gap: 10px;
+    align-items: center;
 }
 
 .client-con {
@@ -60,7 +62,8 @@ body,
 }
 
 .other-con {
-    justify-content: flex-start;
+    flex-direction: row-reverse;
+    justify-content: flex-end;
 }
 
 .chatroom-message {
@@ -96,6 +99,16 @@ body,
 .chatroom-message-time {
     display: flex;
     justify-content: flex-end;
+}
+
+.chatroom-message-avatar {
+    height: 50px;
+    width: 50px;
+    border-radius: 50%;
+}
+
+.hidden-message {
+    display: none;
 }
 
 .chatroom-inputs-container {
