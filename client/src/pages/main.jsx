@@ -28,9 +28,8 @@ function Chatroom() {
 
     const [message, setMessage] = useState('');
 
-    const [messages, setMessages] = useState([]);
-    const [fetchedMessages, setfetchedMessages] = useState([]);
     const [fetchedRooms, setfetchedRooms] = useState([]);
+    const [roomMessages, setRoomMessages] = useState({});
 
     const [roomID, setRoomID] = useState('');
     const [roomName, setRoomName] = useState('');
@@ -60,7 +59,6 @@ function Chatroom() {
                     minute: '2-digit',
                 })
             });
-            setMessage('');
         } else {
             return;
         }
@@ -76,21 +74,17 @@ function Chatroom() {
         });
         if (response.ok) {
             const data = await response.json();
-            setfetchedMessages(data);
+            setRoomMessages((prevRoomMessages) => ({ ...prevRoomMessages, [roomID]: data }));
         } else {
             console.log('failed');
         }
     };
 
     const handleKeyPress = (e) => {
-        if (e.key === 'Enter') {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
             sendMessage();
-        }
-    };
-
-    const leaveRoom = () => {
-        if (roomID) {
-            socket.emit('leave', roomID);
+            setMessage('');
         }
     };
 
@@ -103,10 +97,8 @@ function Chatroom() {
 
             socket.on('receive_message', (data) => {
                 console.log('message received')
-                setMessages((prevMessages) => [...prevMessages, data]);
+                setRoomMessages((prevRoomMessages) => ({ ...prevRoomMessages, [data.room]: [...(prevRoomMessages[data.room] || []), data] }));
             });
-
-
         }
 
         return () => {
@@ -119,8 +111,9 @@ function Chatroom() {
     useEffect(() => {
         if (chatMessage.current) {
             chatMessage.current.scrollIntoView();
+            console.log(roomMessages)
         }
-    }, [messages, fetchedMessages]);
+    }, [roomMessages]);
 
     useEffect(() => {
 
@@ -135,8 +128,14 @@ function Chatroom() {
     return (
         <div className='App'>
             <div className='Nav'>
-                {fetchedRooms.map((room, index) => (
-                    <div key={room.name} onClick={() => { leaveRoom(); setRoomID(room.id); fetchData(room.id); setMessages([]); setRoomName(room.name); }}>
+                {fetchedRooms.map((room) => (
+                    <div key={room.name} onClick={() => {
+                        setRoomID(room.id);
+                        if (!roomMessages[room.id]) {
+                            fetchData(room.id);
+                        }
+                        setRoomName(room.name);
+                    }}>
                         {room.name}
                     </div>
                 ))}
@@ -146,18 +145,8 @@ function Chatroom() {
                 <h4 className='chatroom-title'>{roomName}</h4>
                 <div className='chatroom-chat-container'>
                     <div className='chatroom-chat'>
-                        {fetchedMessages.map((message, index) => (
-                            <div key={index} ref={index === fetchedMessages.length - 1 ? chatMessage : null} className={message.user === user ? 'chatroom-message-container client-con' : 'chatroom-message-container other-con'}>
-                                <div className={message.user === user ? 'chatroom-message client' : 'chatroom-message other'}>
-                                    <div className='chatroom-message-username'><span>-</span>{message.user === user ? user : message.user}</div>
-                                    <div className='chatroom-message-text'>{message.message}</div>
-                                    <div className='chatroom-message-time'>{message.time}</div>
-                                </div>
-                                <img src={message.user === user ? userProfilePicture : 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png'} className='chatroom-message-avatar' alt='avatar' />
-                            </div>
-                        ))}
-                        {messages.map((message, index) => (
-                            <div key={index} ref={index === messages.length - 1 ? chatMessage : null} className={message.user === user ? 'chatroom-message-container client-con' : 'chatroom-message-container other-con'}>
+                        {(roomMessages[roomID] || []).map((message, index) => (
+                            <div key={index} ref={index === roomMessages[roomID].length - 1 ? chatMessage : null} className={message.user === user ? 'chatroom-message-container client-con' : 'chatroom-message-container other-con'}>
                                 <div className={message.user === user ? 'chatroom-message client' : 'chatroom-message other'}>
                                     <div className='chatroom-message-username'><span>-</span>{message.user === user ? user : message.user}</div>
                                     <div className='chatroom-message-text'>{message.message}</div>
@@ -169,7 +158,7 @@ function Chatroom() {
                     </div>
                 </div>
                 <div className='chatroom-inputs-container'>
-                    <input
+                    <textarea
                         className='chatroom-inputs'
                         type="text"
                         placeholder="Message..."

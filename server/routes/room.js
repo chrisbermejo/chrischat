@@ -20,7 +20,7 @@ const Message = require('../database/schemas/message');
 
 router.get('/messages/room/:roomID', async (req, res) => {
     const roomID = req.params.roomID;
-    const messages = await Message.find({ room: roomID });
+    const messages = await Message.find({ room: roomID }).select('-_id');;
     res.json(messages);
 });
 
