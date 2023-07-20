@@ -63,6 +63,7 @@ body,
     display: flex;
     color: white;
     justify-content: center;
+    padding: 5px 0;
 }
 
 .chatroom-chat-container {
@@ -257,4 +258,30 @@ body,
 
 .required__star {
     color: red;
+}
+
+* {
+    scrollbar-width: auto;
+    scrollbar-color: #1a1b1e #ffffff;
+}
+
+/* Chrome, Edge, and Safari */
+*::-webkit-scrollbar {
+    width: 6px;
+}
+
+*::-webkit-scrollbar-thumb {
+    background-color: #1a1b1e;
+    border-radius: 20px;
+}
+
+*::-webkit-scrollbar-track {
+    background: #2b2d31;
+    border-radius: 5px;
+}
+
+.chatroom-title-container {
+    width: 100%;
+    border-bottom: 1.5px solid rgba(0, 0, 0, 0.329);
+    margin: 5px 0;
 }

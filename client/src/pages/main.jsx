@@ -185,7 +185,9 @@ function Chatroom() {
                 </div>
             </div>
             <div className="chatroom">
-                <h1 className='chatroom-title'>{roomName}</h1>
+                <div className='chatroom-title-container'>
+                    <h2 className='chatroom-title'>{roomName}</h2>
+                </div>
                 <div className='chatroom-chat-container'>
                     <div className='chatroom-chat'>
                         {(roomMessages[roomID] || []).map((message, index) => (
