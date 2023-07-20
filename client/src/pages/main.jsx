@@ -95,7 +95,7 @@ function Chatroom() {
 
             if (response.ok) {
                 const data = await response.json();
-                setProfilePictures((prevProfilePictures) => ({ ...prevProfilePictures, [userId]: data}));
+                setProfilePictures((prevProfilePictures) => ({ ...prevProfilePictures, [userId]: data }));
             } else {
                 console.log(`Failed to fetch profile picture for user: ${userId}`);
             }
@@ -185,8 +185,7 @@ function Chatroom() {
                 </div>
             </div>
             <div className="chatroom">
-                <h1 className='chatroom-title'>Messages</h1>
-                <h4 className='chatroom-title'>{roomName}</h4>
+                <h1 className='chatroom-title'>{roomName}</h1>
                 <div className='chatroom-chat-container'>
                     <div className='chatroom-chat'>
                         {(roomMessages[roomID] || []).map((message, index) => (
