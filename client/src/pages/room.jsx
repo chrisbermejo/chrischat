@@ -8,7 +8,7 @@ function Room() {
         const updatedFormData = {
             name: e.target.name.value,
             id: e.target.id.value,
-            user: [{user: 'joe', pfp: 'https://cdn.discordapp.com/avatars/205457610105683969/a0874d497a37fbb0d8f4aab1498aff14.webp'}, {user: 'nyex', pfp: 'https://cdn.discordapp.com/avatars/205457610105683969/a0874d497a37fbb0d8f4aab1498aff14.webp'}]
+            user: ['joe']
         };
 
         try {

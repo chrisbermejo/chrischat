@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 
 const Room = require('../database/schemas/room');
+const User = require('../database/schemas/user');
 
 router.post('/createRoom', async (req, res) => {
     const { name, id, user } = req.body;
@@ -18,16 +19,26 @@ router.post('/createRoom', async (req, res) => {
 
 const Message = require('../database/schemas/message');
 
-router.get('/messages/room/:roomID', async (req, res) => {
+
+//fetches messages from room id
+router.get('/api/room/:roomID/messages', async (req, res) => {
     const roomID = req.params.roomID;
-    const messages = await Message.find({ room: roomID }).select('-_id');;
+    const messages = await Message.find({ room: roomID }).select('-_id');
     res.json(messages);
 });
 
-router.get('/room/:userID', async (req, res) => {
+
+//fetches rooms from user id
+router.get('/api/user/:userID/rooms', async (req, res) => {
     const userID = req.params.userID;
-    const messages = await Room.find({ 'users.user': userID });
+    const messages = await Room.find({ users: userID });
     res.json(messages);
+});
+
+router.get('/api/user/:userID/profilePicture', async (req, res) => {
+    const userID = req.params.userID;
+    const messages = await User.findOne({ username: userID })
+    res.json(messages.picture);
 });
 
 module.exports = router;

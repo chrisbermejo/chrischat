@@ -23,6 +23,7 @@ export const SocketProvider = ({ children }) => {
                 newSocket.off('connect');
             };
         }
+
     }, [user, socket]);
 
     return (

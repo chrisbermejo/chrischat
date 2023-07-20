@@ -1,6 +1,7 @@
 import React, { createContext, useState } from 'react';
 import Cookie from 'universal-cookie';
 import jwt from 'jwt-decode';
+import { disconnectSocket } from '../socket';
 
 export const AuthContext = createContext();
 
@@ -22,6 +23,7 @@ export const AuthProvider = ({ children }) => {
     };
 
     const logout = () => {
+        disconnectSocket();
         setUser(null);
         cookies.remove('token');
     };

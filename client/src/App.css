@@ -29,13 +29,24 @@ body,
     background-color: #2b2d30;
     color: white;
     width: 130px;
+    display: flex;
+    flex-direction: column;
 }
 
-.Nav div {
+.user-info-container {
+    margin-top: auto;
+}
+
+.user-info {
+    background-color: rgba(0, 0, 0, 0.253);
+    display: flex;
+}
+
+.room {
     padding: .4rem .5rem;
 }
 
-.Nav div:hover {
+.room:hover {
     cursor: pointer;
     background-color: rgba(0, 162, 255, 0.185);
 }
@@ -130,20 +141,21 @@ body,
 }
 
 .chatroom-inputs-container {
-    padding: 10px 0;
     margin: 10px 0;
     display: flex;
     justify-content: center;
+    padding: 10px 2rem;
 }
 
-.chatroom-inputs {
+.chatroom-input {
     background-color: #383a40;
     color: white;
     outline: none;
     border: 0px;
     padding: 15px 10px;
-    width: 80%;
+    width: 100%;
     border-radius: 10px;
+    resize: none;
 }
 
 .chatroom-inputs::placeholder {
