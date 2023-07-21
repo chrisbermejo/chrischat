@@ -8,21 +8,19 @@ import '../App.css';
 function Chatroom() {
 
     const DEFAULT_PICTURE = 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png'
-
     //Socket info
     const { socket, socketID } = useSocket();
-
     //User info
     const { user, userProfilePicture, logout } = useAuth();
-
     //Probably rename this to Input
     const [message, setMessage] = useState('');
-
+    //Stores user's rooms
     const [fetchedRooms, setfetchedRooms] = useState([]);
+    //Stores messages for users' rooms
     const [roomMessages, setRoomMessages] = useState({});
-
+    //Stores profile pictures of users in users' rooms
     const [profilePictures, setProfilePictures] = useState({});
-
+    //Store information on the current room in
     const [currentRoomInfo, setCurrentRoomInfo] = useState({
         roomID: null,
         roomName: null,
