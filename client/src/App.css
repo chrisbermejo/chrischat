@@ -28,7 +28,7 @@ body,
 .Nav {
     background-color: #2b2d30;
     color: white;
-    width: 130px;
+    /* width: 130px; */
     display: flex;
     flex-direction: column;
 }
@@ -42,21 +42,12 @@ body,
     display: flex;
 }
 
-.room {
-    padding: .4rem .5rem;
-}
-
-.room:hover {
-    cursor: pointer;
-    background-color: rgba(0, 162, 255, 0.185);
-}
-
 .chatroom {
     display: flex;
     flex-direction: column;
     height: 100%;
     background-color: #313338;
-    width: 100%;
+    flex-grow: 1;
 }
 
 .chatroom-title {
@@ -282,6 +273,52 @@ body,
 
 .chatroom-title-container {
     width: 100%;
-    border-bottom: 1.5px solid rgba(0, 0, 0, 0.329);
+    box-shadow: #0003 0 4px 6px -1px, #0000001f 0 2px 4px -1px;
     margin: 5px 0;
+}
+
+.rooms-title {
+    display: flex;
+    gap: 1rem;
+    padding: .5rem .5rem;
+    align-items: baseline;
+}
+
+.rooms-title-text {
+    font-weight: 900;
+    font-size: .8rem;
+}
+
+.plus-sign {
+    font-size: 1rem;
+}
+
+.room {
+    display: flex;
+    gap: .4rem;
+    align-items: center;
+    margin: .4rem .5rem;
+    padding: .2rem .3rem;
+    border-radius: 4px;
+}
+
+.room:hover {
+    cursor: pointer;
+    background-color: rgba(0, 0, 0, 0.185);
+}
+
+.room-name {
+    font-size: .9rem;
+}
+
+.room-user-count {
+    font-size: .75rem;
+}
+
+.room-picture-container {
+    height: 35px;
+}
+
+.room-picture {
+    border-radius: 50%;
 }

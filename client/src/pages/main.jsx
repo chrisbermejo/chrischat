@@ -23,18 +23,21 @@ function Chatroom() {
 
     const [profilePictures, setProfilePictures] = useState({});
 
-    const [roomID, setRoomID] = useState('');
-    const [roomName, setRoomName] = useState('');
+    const [currentRoomInfo, setCurrentRoomInfo] = useState({
+        roomID: null,
+        roomName: null,
+        roomPicture: null,
+    });
 
     const chatMessage = useRef(null);
 
     const sendMessage = () => {
         if (message !== '') {
 
-            socket.emit('join', roomID);
+            socket.emit('join', currentRoomInfo.roomID);
 
             socket.emit('send_message', {
-                room: roomID,
+                room: currentRoomInfo.roomID,
                 id: socketID,
                 user: user,
                 message: message,
@@ -116,8 +119,7 @@ function Chatroom() {
     };
 
     const handleRoomClick = async (room) => {
-        setRoomID(room.id);
-        setRoomName(room.name);
+        setCurrentRoomInfo((prevProfilePictures) => ({ ...prevProfilePictures, roomID: room.id, roomName: room.name }));
 
         if (!roomMessages[room.id]) {
             await fetchRoomMessages(room.id);
@@ -131,9 +133,9 @@ function Chatroom() {
     };
 
     useEffect(() => {
-        if (socket && roomID) {
+        if (socket && currentRoomInfo.roomID) {
 
-            socket.emit('join', roomID);
+            socket.emit('join', currentRoomInfo.roomID);
 
             socket.on('receive_message', (data) => {
                 setRoomMessages((prevRoomMessages) => ({ ...prevRoomMessages, [data.room]: [...(prevRoomMessages[data.room] || []), data] }));
@@ -145,14 +147,13 @@ function Chatroom() {
                 socket.off('receive_message');
             }
         };
-    }, [socket, roomID]);
+    }, [socket, currentRoomInfo.roomID]);
 
     useEffect(() => {
         if (chatMessage.current) {
             chatMessage.current.scrollIntoView();
-            console.log(profilePictures)
         }
-    }, [roomMessages]);
+    }, [roomMessages, currentRoomInfo.roomID]);
 
     useEffect(() => {
 
@@ -165,10 +166,20 @@ function Chatroom() {
     return (
         <div className='App'>
             <div className='Nav'>
+                <div className='rooms-title'>
+                    <span className='rooms-title-text'>DIRECT MESSAGES</span>
+                    <span className='rooms-title-text plus-sign'>+</span>
+                </div>
                 <div className='rooms'>
                     {fetchedRooms.map((room) => (
                         <div className='room' key={room.name} onClick={() => { handleRoomClick(room) }}>
-                            {room.name}
+                            <div className='room-picture-container'>
+                                <img className='room-picture' height={35} width={35} src={room.picture} />
+                            </div>
+                            <div className='room-information'>
+                                <div className='room-name'>{room.name}</div>
+                                <div className='room-user-count'>{room.users_count === 1 ? '1 Member' : `${room.users_count} Members`}</div>
+                            </div>
                         </div>
                     ))}
                 </div>
@@ -176,7 +187,9 @@ function Chatroom() {
                     <div className='user-info'>
                         <img height={50} src={userProfilePicture} className='user-info-avatar' alt='avatar' />
                         <div>
-                            <div> {user} </div>
+                            <div>
+                                {user}
+                            </div>
                             <div>
                                 <button onClick={() => { logout(); }}> Logout </button>
                             </div>
@@ -186,12 +199,12 @@ function Chatroom() {
             </div>
             <div className="chatroom">
                 <div className='chatroom-title-container'>
-                    <h2 className='chatroom-title'>{roomName}</h2>
+                    <h2 className='chatroom-title'>{currentRoomInfo.roomName}</h2>
                 </div>
                 <div className='chatroom-chat-container'>
                     <div className='chatroom-chat'>
-                        {(roomMessages[roomID] || []).map((message, index) => (
-                            <div key={index} ref={index === roomMessages[roomID].length - 1 ? chatMessage : null} className={message.user === user ? 'chatroom-message-container client-con' : 'chatroom-message-container other-con'}>
+                        {(roomMessages[currentRoomInfo.roomID] || []).map((message, index) => (
+                            <div key={index} ref={index === roomMessages[currentRoomInfo.roomID].length - 1 ? chatMessage : null} className={message.user === user ? 'chatroom-message-container client-con' : 'chatroom-message-container other-con'}>
                                 <div className={message.user === user ? 'chatroom-message client' : 'chatroom-message other'}>
                                     <div className='chatroom-message-username'>-{message.user}</div>
                                     <div className='chatroom-message-text'>{message.message}</div>
