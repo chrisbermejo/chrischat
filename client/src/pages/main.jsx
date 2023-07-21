@@ -117,7 +117,7 @@ function Chatroom() {
     };
 
     const handleRoomClick = async (room) => {
-        setCurrentRoomInfo((prevProfilePictures) => ({ ...prevProfilePictures, roomID: room.id, roomName: room.name }));
+        setCurrentRoomInfo((prevProfilePictures) => ({ ...prevProfilePictures, roomID: room.id, roomName: room.name, roomPicture: room.picture }));
 
         if (!roomMessages[room.id]) {
             await fetchRoomMessages(room.id);
@@ -164,13 +164,16 @@ function Chatroom() {
     return (
         <div className='App'>
             <div className='Nav'>
+                <div className='finder-container'>
+                    <div className='finder'>Find or start a conersation</div>
+                </div>
                 <div className='rooms-title'>
                     <span className='rooms-title-text'>DIRECT MESSAGES</span>
                     <span className='rooms-title-text plus-sign'>+</span>
                 </div>
                 <div className='rooms'>
                     {fetchedRooms.map((room) => (
-                        <div className='room' key={room.name} onClick={() => { handleRoomClick(room) }}>
+                        <div className={`room ${currentRoomInfo.roomID === room.id ? 'current-room' : ''}`} key={room.name} onClick={() => { handleRoomClick(room) }}>
                             <div className='room-picture-container'>
                                 <img className='room-picture' height={35} width={35} src={room.picture} />
                             </div>
@@ -196,8 +199,11 @@ function Chatroom() {
                 </div>
             </div>
             <div className="chatroom">
-                <div className='chatroom-title-container'>
-                    <h2 className='chatroom-title'>{currentRoomInfo.roomName}</h2>
+                <div className='chatroom-title-container-container'>
+                    <div className='chatroom-title-container'>
+                        {currentRoomInfo.roomPicture !== null ? <img className='chatroom-title-picture' height={40} width={40} src={currentRoomInfo.roomPicture} alt='room-picture' /> : null}
+                        <h2 className='chatroom-title'>{currentRoomInfo.roomName}</h2>
+                    </div>
                 </div>
                 <div className='chatroom-chat-container'>
                     <div className='chatroom-chat'>
