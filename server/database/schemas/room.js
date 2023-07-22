@@ -5,7 +5,20 @@ const RoomSchema = new mongoose.Schema({
     name: String,
     users: Array,
     users_count: Number,
-    picture: String
+    picture: String,
+    mostRecentMessageDate: {
+        type: String,
+        default: new Date().toLocaleString('en-US', {
+            timeZone: 'America/New_York',
+            year: 'numeric',
+            month: 'numeric',
+            day: 'numeric',
+            hour12: true,
+            hour: 'numeric',
+            minute: '2-digit',
+            second: '2-digit'
+        }),
+    }
 });
 
 const Room = mongoose.model('rooms', RoomSchema);

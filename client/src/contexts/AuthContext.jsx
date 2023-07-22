@@ -25,6 +25,7 @@ export const AuthProvider = ({ children }) => {
     const logout = () => {
         disconnectSocket();
         setUser(null);
+        setUserProfilePicture(null);
         cookies.remove('token');
     };
 

@@ -44,13 +44,17 @@ function Chatroom() {
                     year: 'numeric',
                     month: 'numeric',
                     day: 'numeric',
+                    hour12: true,
+                    hour: 'numeric',
+                    minute: '2-digit',
+                    second: '2-digit'
                 }),
                 time: new Date().toLocaleString('en-US', {
                     timeZone: 'America/New_York',
                     hour12: true,
                     hour: 'numeric',
-                    minute: '2-digit',
-                })
+                    minute: '2-digit'
+                }),
             });
 
         } else {
@@ -84,6 +88,7 @@ function Chatroom() {
         });
         if (response.ok) {
             const data = await response.json();
+            data.sort((a, b) => new Date(b.mostRecentMessageDate) - new Date(a.mostRecentMessageDate));
             setfetchedRooms(data);
         } else {
             console.log('failed');
@@ -135,8 +140,27 @@ function Chatroom() {
 
             socket.emit('join', currentRoomInfo.roomID);
 
+
+            //data.room is the room ID
+            //data is the recieve message
+
+            //prevRooms.id is the room ID
+            //prevRooms is the fetched room object
             socket.on('receive_message', (data) => {
-                setRoomMessages((prevRoomMessages) => ({ ...prevRoomMessages, [data.room]: [...(prevRoomMessages[data.room] || []), data] }));
+                
+                setRoomMessages((prevRoomMessages) => ({
+                    ...prevRoomMessages,
+                    [data.room]: [...(prevRoomMessages[data.room] || []), data],
+                }));
+
+                setfetchedRooms((prevRooms) => {
+                    if (prevRooms.length > 0 && prevRooms[0].id === data.room) {
+                        return prevRooms;
+                    }
+                    const updatedRooms = prevRooms.filter((r) => r.id !== data.room);
+                    const roomToUpdate = prevRooms.find((r) => r.id === data.room);
+                    return [roomToUpdate, ...updatedRooms];
+                });
             });
         }
 
@@ -154,18 +178,16 @@ function Chatroom() {
     }, [roomMessages, currentRoomInfo.roomID]);
 
     useEffect(() => {
-
         if (user) {
             fetchRoom(user);
         };
-
     }, []);
 
     return (
         <div className='App'>
             <div className='Nav'>
                 <div className='finder-container'>
-                    <div className='finder'>Find or start a conersation</div>
+                    <button className='finder'>Find or start a conersation</button>
                 </div>
                 <div className='rooms-title'>
                     <span className='rooms-title-text'>DIRECT MESSAGES</span>
@@ -231,7 +253,7 @@ function Chatroom() {
                     />
                 </div>
             </div>
-        </div>
+        </div >
     );
 }
 

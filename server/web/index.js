@@ -1,6 +1,7 @@
 const { Server } = require('socket.io');
 const { instrument } = require('@socket.io/admin-ui');
 const Message = require('../database/schemas/message');
+const Room = require('../database/schemas/room');
 
 module.exports = function setupWebSocket(server) {
     const io = new Server(server, {
@@ -39,6 +40,10 @@ module.exports = function setupWebSocket(server) {
 
             const newMessages = new Message(messageObj);
             await newMessages.save();
+
+            const room = await Room.findOne({ id: data.room });
+            room.mostRecentMessageDate = data.date;
+            await room.save();
 
             channel.to(data.room).emit('receive_message', messageObj);
         });

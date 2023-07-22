@@ -24,7 +24,6 @@ function App() {
             });
 
             if (response.ok) {
-                console.log('success');
                 navigate('/channel');
             } else {
                 console.log('failed');
