@@ -5,12 +5,13 @@ const Room = require('../database/schemas/room');
 const User = require('../database/schemas/user');
 
 const verifyToken = (req, res, next) => {
-    const token = req.cookies.token;
+    const token = req.headers.cookie;
+    console.log(token)
     if (!token) {
         return res.status(403).json({ message: 'No token provided.' });
     }
 
-    jwt.verify(token, 'your-secret-key', (err, decoded) => {
+    jwt.verify(token, '123456', (err, decoded) => {
         if (err) {
             return res.status(401).json({ message: 'Invalid token.' });
         }

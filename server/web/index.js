@@ -14,27 +14,27 @@ module.exports = function setupWebSocket(server) {
 
     const channel = io.of('/channel');
 
-    channel.use(async (socket, next) => {
-        try {
-            const token = socket.handshake.headers.cookie?.replace('token=', '');
-            console.log(`token : ${token}`)
-            if (!token) {
-                throw new Error('Token not provided');
-            }
+    // channel.use(async (socket, next) => {
+    //     try {
+    //         const token = socket.handshake.headers.cookie?.replace('token=', '');
+    //         console.log(`token : ${token}`)
+    //         if (!token) {
+    //             throw new Error('Token not provided');
+    //         }
 
-            // Verify the token
-            const decoded = jwt.verify(token, '123456');
-            console.log(`decoded : ${decoded}`);
-            socket.user = decoded;
+    //         // Verify the token
+    //         const decoded = jwt.verify(token, '123456');
+    //         console.log(`decoded : ${decoded}`);
+    //         socket.user = decoded;
 
-            // Proceed to the next middleware or event handler
-            next();
-        } catch (err) {
-            // If the token is invalid, close the WebSocket connection
-            socket.emit('error', { message: 'Invalid token' });
-            socket.disconnect();
-        }
-    });
+    //         // Proceed to the next middleware or event handler
+    //         next();
+    //     } catch (err) {
+    //         // If the token is invalid, close the WebSocket connection
+    //         socket.emit('error', { message: 'Invalid token' });
+    //         socket.disconnect();
+    //     }
+    // });
 
     channel.on('connection', (socket) => {
 
