@@ -4,20 +4,9 @@ const router = express.Router();
 const Room = require('../database/schemas/room');
 const User = require('../database/schemas/user');
 
-const verifyToken = (req, res, next) => {
-    const token = req.headers.cookie;
-    console.log(token)
-    if (!token) {
-        return res.status(403).json({ message: 'No token provided.' });
-    }
+const verifyTokenFunction = require('../verifyToken');
 
-    jwt.verify(token, '123456', (err, decoded) => {
-        if (err) {
-            return res.status(401).json({ message: 'Invalid token.' });
-        }
-        next();
-    });
-};
+const SERECT_WORD = '123456';
 
 router.post('/createRoom', async (req, res) => {
     const { name, id, user } = req.body;
@@ -26,7 +15,6 @@ router.post('/createRoom', async (req, res) => {
         id: id,
         users: user
     });
-    console.log(newRoom)
     await newRoom.save();
 
     res.status(201).send({ message: 'User created successfully' });
@@ -35,13 +23,29 @@ router.post('/createRoom', async (req, res) => {
 const Message = require('../database/schemas/message');
 
 
+const verifyToken = (req, res, next) => {
+    const token = req.header('Authorization');
+    if (token) {
+        try {
+            const decoded = verifyTokenFunction(token, SERECT_WORD)
+            // console.log(`Fetched!`);
+            next();
+        } catch (error) {
+            // console.log('Token validation error:', error.message);
+            return res.status(401).send({ message: 'Access Denied' });
+        }
+    } else {
+        // console.log('Token not provided');
+        return res.status(401).send({ message: 'Access Denied' });
+    }
+};
+
 //fetches messages from room id
 router.get('/api/room/:roomID/messages', verifyToken, async (req, res) => {
     const roomID = req.params.roomID;
     const messages = await Message.find({ room: roomID }).select('-_id');
     res.json(messages);
 });
-
 
 //fetches rooms from user id
 router.get('/api/user/:userID/rooms', verifyToken, async (req, res) => {
@@ -50,6 +54,7 @@ router.get('/api/user/:userID/rooms', verifyToken, async (req, res) => {
     res.json(messages);
 });
 
+//fetches profile picture from user id
 router.get('/api/user/:userID/profilePicture', verifyToken, async (req, res) => {
     const userID = req.params.userID;
     const messages = await User.findOne({ username: userID })

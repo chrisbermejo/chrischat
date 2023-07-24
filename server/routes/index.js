@@ -4,7 +4,7 @@ const router = express.Router();
 const User = require('../database/schemas/user');
 
 const jwt = require('jsonwebtoken');
-const JWT_SERECT = '123456';
+const JWT_SERECT = '1234567';
 
 router.post('/register', async (req, res) => {
 
@@ -17,7 +17,7 @@ router.post('/register', async (req, res) => {
             password: password
         });
         await user.save();
-    
+
         res.status(201).send({ message: 'User created successfully' });
     } catch (error) {
         res.status(400).send({ error, message: 'User not created' });

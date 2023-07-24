@@ -2,7 +2,10 @@ const { Server } = require('socket.io');
 const { instrument } = require('@socket.io/admin-ui');
 const Message = require('../database/schemas/message');
 const Room = require('../database/schemas/room');
-const jwt = require('jsonwebtoken');
+
+const verifyToken =  require('../verifyToken');
+
+const SERECT_WORD = '123456';
 
 module.exports = function setupWebSocket(server) {
     const io = new Server(server, {
@@ -14,35 +17,36 @@ module.exports = function setupWebSocket(server) {
 
     const channel = io.of('/channel');
 
-    // channel.use(async (socket, next) => {
-    //     try {
-    //         const token = socket.handshake.headers.cookie?.replace('token=', '');
-    //         console.log(`token : ${token}`)
-    //         if (!token) {
-    //             throw new Error('Token not provided');
-    //         }
-
-    //         // Verify the token
-    //         const decoded = jwt.verify(token, '123456');
-    //         console.log(`decoded : ${decoded}`);
-    //         socket.user = decoded;
-
-    //         // Proceed to the next middleware or event handler
-    //         next();
-    //     } catch (err) {
-    //         // If the token is invalid, close the WebSocket connection
-    //         socket.emit('error', { message: 'Invalid token' });
-    //         socket.disconnect();
-    //     }
-    // });
-
     channel.on('connection', (socket) => {
 
-        console.log(`User Connected: ${socket.id}`);
+        const token = socket.handshake.auth.token;
+
+        if (token) {
+            try {
+
+                const decoded = verifyToken(token, SERECT_WORD)
+                
+                console.log(`User ${decoded.user} connected. ID ${socket.id}`);
+
+                socket.emit('authenticated', { message: 'Authenticated successfully' });
+
+            } catch (error) {
+                console.log('Token validation error:', error.message);
+                socket.emit('unauthorized', { error: 'Invalid or expired token' });
+                socket.disconnect(true);
+                return;
+            }
+        } else {
+            console.log('Token not provided');
+            socket.emit('unauthorized', { error: 'Token not provided' });
+            socket.disconnect(true);
+            return;
+        }
 
         socket.on('join', (room) => {
             socket.join(room);
             console.log(`User Joined Room: ${room}`)
+            // console.log(socket.handshake.auth)
         });
 
         socket.on('leave', (room) => {

@@ -11,7 +11,7 @@ function Chatroom() {
     //Socket info
     const { socket, socketID } = useSocket();
     //User info
-    const { user, userProfilePicture, logout } = useAuth();
+    const { user, userProfilePicture, logout, checkToken } = useAuth();
     //Probably rename this to Input
     const [message, setMessage] = useState('');
     //Stores user's rooms
@@ -26,6 +26,8 @@ function Chatroom() {
         roomName: null,
         roomPicture: null,
     });
+
+    const [isAuthorized, setIsAuthorized] = useState(true);
 
     const chatMessage = useRef(null);
 
@@ -63,50 +65,73 @@ function Chatroom() {
     };
 
     const fetchRoomMessages = async (roomID) => {
-        const response = await fetch(`http://localhost:4000/api/room/${roomID}/messages`, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json'
+        try {
+            const response = await fetch(`http://localhost:8000/api/room/${roomID}/messages`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': checkToken()
+                },
+            });
+            if (response.ok) {
+                const data = await response.json();
+                setRoomMessages((prevRoomMessages) => ({ ...prevRoomMessages, [roomID]: data }));
+            } else if (response.status === 401) {
+                setIsAuthorized(false);
+                console.log('Access Denied: You are not authorized to access this resource.');
+            } else {
+                console.log(`Failed to fetch room messages for room: ${roomID}`);
             }
-        });
-        if (response.ok) {
-            const data = await response.json();
-            setRoomMessages((prevRoomMessages) => ({ ...prevRoomMessages, [roomID]: data }));
-        }
-
-        else {
-            console.log('failed');
-        }
-    };
-
-    const fetchRoom = async (user) => {
-        const response = await fetch(`http://localhost:4000/api/user/${user}/rooms`, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        });
-        if (response.ok) {
-            const data = await response.json();
-            data.sort((a, b) => new Date(b.mostRecentMessageDate) - new Date(a.mostRecentMessageDate));
-            setfetchedRooms(data);
-        } else {
-            console.log('failed');
+        } catch (error) {
+            console.error('Error fetching room messages:', error);
         }
     };
 
     const fetchProfilePictureForUser = async (userId) => {
         try {
-            const response = await fetch(`http://localhost:4000/api/user/${userId}/profilePicture`);
+            const response = await fetch(`http://localhost:8000/api/user/${userId}/profilePicture`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': checkToken()
+                },
+            });
 
             if (response.ok) {
                 const data = await response.json();
                 setProfilePictures((prevProfilePictures) => ({ ...prevProfilePictures, [userId]: data }));
+            } else if (response.status === 401) {
+                setIsAuthorized(false);
+                console.log('Access Denied: You are not authorized to access this resource.');
             } else {
                 console.log(`Failed to fetch profile picture for user: ${userId}`);
             }
         } catch (error) {
             console.error('Error fetching profile picture:', error);
+        }
+    };
+
+    const fetchRoom = async (userId) => {
+        try {
+            const response = await fetch(`http://localhost:8000/api/user/${userId}/rooms`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': checkToken()
+                },
+            });
+            if (response.ok) {
+                const data = await response.json();
+                data.sort((a, b) => new Date(b.mostRecentMessageDate) - new Date(a.mostRecentMessageDate));
+                setfetchedRooms(data);
+            } else if (response.status === 401) {
+                setIsAuthorized(false);
+                console.log('Access Denied: You are not authorized to access this resource.');
+            } else {
+                console.log(`Failed to fetch rooms for user: ${userId}`);
+            }
+        } catch (error) {
+            console.error(`Error fetching user's room: ${error}`);
         }
     };
 
@@ -122,17 +147,19 @@ function Chatroom() {
     };
 
     const handleRoomClick = async (room) => {
-        setCurrentRoomInfo((prevProfilePictures) => ({ ...prevProfilePictures, roomID: room.id, roomName: room.name, roomPicture: room.picture }));
+        if (isAuthorized) {
+            setCurrentRoomInfo((prevProfilePictures) => ({ ...prevProfilePictures, roomID: room.id, roomName: room.name, roomPicture: room.picture }));
 
-        if (!roomMessages[room.id]) {
-            await fetchRoomMessages(room.id);
-        }
-
-        room.users.forEach((userId) => {
-            if (!profilePictures[userId]) {
-                fetchProfilePictureForUser(userId);
+            if (!roomMessages[room.id]) {
+                await fetchRoomMessages(room.id);
             }
-        });
+
+            room.users.forEach((userId) => {
+                if (!profilePictures[userId]) {
+                    fetchProfilePictureForUser(userId);
+                }
+            });
+        }
     };
 
     useEffect(() => {
@@ -147,7 +174,7 @@ function Chatroom() {
             //prevRooms.id is the room ID
             //prevRooms is the fetched room object
             socket.on('receive_message', (data) => {
-                
+
                 setRoomMessages((prevRoomMessages) => ({
                     ...prevRoomMessages,
                     [data.room]: [...(prevRoomMessages[data.room] || []), data],

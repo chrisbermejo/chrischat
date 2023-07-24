@@ -20,7 +20,7 @@ function Login() {
         };
 
         try {
-            const response = await fetch('http://localhost:4000/login', {
+            const response = await fetch('http://localhost:8000/login', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -30,13 +30,15 @@ function Login() {
 
             if (response.ok) {
                 const token = await response.json();
-                const socket = createSocket();
+                login(token.token);
+                const socket = createSocket(token.token);
                 socket.on('connect', () => {
                     setSocket(socket);
                     setSocketID(socket.id);
-                    login(token.token);
-                    navigate('/channel');
                 });
+                if (socket && token.token) {
+                    navigate('/channel');
+                }
             } else {
                 console.log('failed');
             }
@@ -55,11 +57,11 @@ function Login() {
                 <form className='form' onSubmit={handleSubmit}>
                     <div className='form-input'>
                         <label htmlFor='username' >USERNAME</label>
-                        <input type='text' name='username' required />
+                        <input type='text' name='username' required autoComplete="on" />
                     </div>
                     <div className='form-input'>
                         <label htmlFor='password' >PASSWORD <span className='required__star'>*</span></label>
-                        <input type='password' name='password' required />
+                        <input type='password' name='password' required autoComplete="on" />
                     </div>
                     <input className='form-button-submit' type='submit' value='Login' />
                     <div className='form-resigter-container'>

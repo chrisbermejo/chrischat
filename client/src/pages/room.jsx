@@ -12,7 +12,7 @@ function Room() {
         };
 
         try {
-            const response = await fetch('http://localhost:4000/createRoom', {
+            const response = await fetch('http://localhost:8000/createRoom', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'

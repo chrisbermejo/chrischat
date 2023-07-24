@@ -7,14 +7,14 @@ export const SocketContext = createContext();
 
 export const SocketProvider = ({ children }) => {
 
-    const { user } = useAuth();
+    const { user, initialToken } = useAuth();
     const [socket, setSocket] = useState(null);
     const [socketID, setSocketID] = useState(null);
 
     useEffect(() => {
 
-        if (user && !socket) {
-            const newSocket = createSocket();
+        if (user && !socket && initialToken) {
+            const newSocket = createSocket(initialToken);
             newSocket.on('connect', () => {
                 setSocket(newSocket);
                 setSocketID(newSocket.id);

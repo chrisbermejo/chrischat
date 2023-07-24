@@ -9,7 +9,7 @@ const app = express();
 const corsOptions = {
     origin: 'http://localhost:3000',
     methods: 'GET, POST, OPTIONS',
-    allowedHeaders: 'Origin, X-Requested-With, Content-Type, Accept',
+    allowedHeaders: 'Origin, X-Requested-With, Content-Type, Accept, Authorization',
 };
 app.use(cors(corsOptions));
 
@@ -28,8 +28,4 @@ WebSocket(server);
 
 server.listen(8000, () => {
     console.log('Server is running on port 8000');
-});
-
-app.listen(4000, () => {
-    console.log('Server is running on port 4000');
 });

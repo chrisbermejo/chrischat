@@ -28,9 +28,14 @@ export const AuthProvider = ({ children }) => {
 
     const login = (token) => {
         const decoded = jwt(token);
+        cookies.set('token', token, {
+            path: '/',
+            sameSite: 'lax',
+            httpOnly: false,
+            expires: new Date(decoded.exp * 1000)
+        });
         setUser(decoded.user);
         setUserProfilePicture(decoded.picture);
-        cookies.set('token', token, { expires: new Date(decoded.exp * 1000) });
     };
 
     const logout = () => {
@@ -40,8 +45,12 @@ export const AuthProvider = ({ children }) => {
         cookies.remove('token');
     };
 
+    const checkToken = () => {
+        return cookies.get('token');
+    }
+
     return (
-        <AuthContext.Provider value={{ user, login, logout, userProfilePicture, isAuthenticated }}>
+        <AuthContext.Provider value={{ user, login, logout, userProfilePicture, isAuthenticated, checkToken }}>
             {children}
         </AuthContext.Provider>
     );
