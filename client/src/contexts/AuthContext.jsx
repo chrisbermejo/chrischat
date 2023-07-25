@@ -48,10 +48,9 @@ export const AuthProvider = ({ children }) => {
                     setUserProfilePicture(data.picture);
                     setIsAuthenticated(true);
                     navigate('/channel');
-                } else if (response.status === 401) {
-                    setIsAuthenticated(false);
                 } else {
-                    console.log(`Failed to fetch user information. Status: ${response.status}`);
+                    console.log(`User has to sign in: ${response.status}`);
+                    setIsAuthenticated(false);
                 }
             } catch (error) {
                 console.error('Error fetching user information:', error);

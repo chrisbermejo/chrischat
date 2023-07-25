@@ -7,6 +7,20 @@ const Room = require('../database/schemas/room');
 
 const verifyToken = require('../verifyToken');
 
+function getAccessTokenFromCookies(cookies) {
+    if (!cookies) {
+      return null;
+    }
+  
+    const tokenCookie = cookies.find((cookie) => cookie.trim().startsWith('access_token='));
+  
+    if (!tokenCookie) {
+      return null;
+    }
+  
+    return tokenCookie.split('=')[1];
+  }
+
 module.exports = function setupWebSocket(server) {
     const io = new Server(server, {
         cors: {
@@ -19,13 +33,14 @@ module.exports = function setupWebSocket(server) {
 
     channel.on('connection', (socket) => {
 
-        const token = socket.handshake.headers.cookie?.split('=')[1];
+        const cookies = socket.handshake.headers.cookie?.split('; ');
 
-        if (token) {
+        const accessToken = getAccessTokenFromCookies(cookies);
+
+        if (accessToken) {
             try {
 
-                const decoded = verifyToken(token, process.env.SECRET_WORD)
-                console.log(decoded)
+                const decoded = verifyToken(accessToken, process.env.ACCESS_TOKEN_SECRET)
 
                 console.log(`User ${decoded.username} connected. ID ${socket.id}`);
 
