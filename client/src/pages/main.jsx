@@ -111,9 +111,9 @@ function Chatroom() {
         }
     };
 
-    const fetchRoom = async (userId) => {
+    const fetchRoom = async () => {
         try {
-            const response = await fetch(`http://localhost:8000/api/user/${userId}/rooms`, {
+            const response = await fetch(`http://localhost:8000/api/user/rooms`, {
                 method: 'GET',
                 credentials: 'include',
                 headers: {
@@ -128,7 +128,7 @@ function Chatroom() {
                 setIsAuthorized(false);
                 console.log('Access Denied: You are not authorized to access this resource.');
             } else {
-                console.log(`Failed to fetch rooms for user: ${userId}`);
+                console.log(`Failed to fetch rooms for user`);
             }
         } catch (error) {
             console.error(`Error fetching user's room: ${error}`);

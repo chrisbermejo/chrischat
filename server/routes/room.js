@@ -5,7 +5,8 @@ const Room = require('../database/schemas/room');
 const User = require('../database/schemas/user');
 
 const verifyTokenFunction = require('../verifyToken');
-const SERECT_WORD = '123456';
+
+require('dotenv').config()
 
 router.post('/createRoom', async (req, res) => {
     const { name, id, user } = req.body;
@@ -27,7 +28,7 @@ const verifyToken = (req, res, next) => {
 
     if (token) {
         try {
-            const decoded = verifyTokenFunction(token, SERECT_WORD);
+            const decoded = verifyTokenFunction(token, process.env.SECRET_WORD);
             req.user = decoded;
             next();
         } catch (error) {
@@ -50,9 +51,8 @@ router.get('/api/room/:roomID/messages', verifyToken, async (req, res) => {
 });
 
 //fetches rooms from user id
-router.get('/api/user/:userID/rooms', verifyToken, async (req, res) => {
-    const userID = req.params.userID;
-    const messages = await Room.find({ users: userID });
+router.get('/api/user/rooms', verifyToken, async (req, res) => {
+    const messages = await Room.find({ users: req.user.username });
     res.json(messages);
 });
 

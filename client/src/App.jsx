@@ -20,6 +20,7 @@ export default function App() {
                     <Route element={<RequireAuth />}>
                         <Route index path="/channel" element={<Main />} />
                     </Route>
+                    <Route path='*' element={<Login />} />
                 </Routes>
             </SocketProvider>
         </AuthProvider>

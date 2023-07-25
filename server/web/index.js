@@ -1,11 +1,10 @@
+require('dotenv').config()
 const { Server } = require('socket.io');
 const { instrument } = require('@socket.io/admin-ui');
 const Message = require('../database/schemas/message');
 const Room = require('../database/schemas/room');
 
 const verifyToken = require('../verifyToken');
-
-const SERECT_WORD = '123456';
 
 module.exports = function setupWebSocket(server) {
     const io = new Server(server, {
@@ -24,7 +23,8 @@ module.exports = function setupWebSocket(server) {
         if (token) {
             try {
 
-                const decoded = verifyToken(token, SERECT_WORD)
+                const decoded = verifyToken(token, process.env.SECRET_WORD)
+                console.log(decoded)
 
                 console.log(`User ${decoded.username} connected. ID ${socket.id}`);
 

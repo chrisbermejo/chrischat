@@ -1,10 +1,11 @@
 const express = require('express');
 const router = express.Router();
 
+require('dotenv').config()
+
 const User = require('../database/schemas/user');
 
 const jwt = require('jsonwebtoken');
-const JWT_SERECT = '123456';
 
 router.post('/register', async (req, res) => {
 
@@ -29,7 +30,8 @@ router.post('/login', async (req, res) => {
     if (!user) {
         return res.status(400).send({ message: 'User not found' });
     } else {
-        const token = jwt.sign({ isLoggedIn: true, username: user.username, picture: user.picture }, JWT_SERECT, { expiresIn: '15m' });
+        console.log(process.env.SECRET_WORD)
+        const token = jwt.sign({ isLoggedIn: true, username: user.username, picture: user.picture }, process.env.SECRET_WORD, { expiresIn: '15m' });
         res.cookie('token', token, {
             httpOnly: true,
             path: '/',
