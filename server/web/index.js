@@ -1,4 +1,5 @@
 require('dotenv').config()
+
 const { Server } = require('socket.io');
 const { instrument } = require('@socket.io/admin-ui');
 const Message = require('../database/schemas/message');
