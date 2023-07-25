@@ -68,9 +68,9 @@ function Chatroom() {
         try {
             const response = await fetch(`http://localhost:8000/api/room/${roomID}/messages`, {
                 method: 'GET',
+                credentials: 'include',
                 headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': checkToken()
+                    'Content-Type': 'application/json'
                 },
             });
             if (response.ok) {
@@ -91,9 +91,9 @@ function Chatroom() {
         try {
             const response = await fetch(`http://localhost:8000/api/user/${userId}/profilePicture`, {
                 method: 'GET',
+                credentials: 'include',
                 headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': checkToken()
+                    'Content-Type': 'application/json'
                 },
             });
 
@@ -115,9 +115,9 @@ function Chatroom() {
         try {
             const response = await fetch(`http://localhost:8000/api/user/${userId}/rooms`, {
                 method: 'GET',
+                credentials: 'include',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': checkToken()
                 },
             });
             if (response.ok) {

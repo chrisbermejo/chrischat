@@ -1,7 +1,7 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-
-import { AuthProvider } from './contexts/AuthContext';
+import { Routes, Route } from 'react-router-dom';
 import { SocketProvider } from './contexts/SocketContext';
+import { AuthProvider } from './contexts/AuthContext';
+
 
 import Main from './pages/main';
 import Login from './pages/login';
@@ -13,16 +13,14 @@ export default function App() {
     return (
         <AuthProvider>
             <SocketProvider>
-                <BrowserRouter>
-                    <Routes>
-                        <Route path='/login' element={<Login />} />
-                        <Route path='/register' element={<Register />} />
-                        <Route path='/room/create' element={<RoomCreate />} />
-                        <Route element={<RequireAuth />}>
-                            <Route index path="/channel" element={<Main />} />
-                        </Route>
-                    </Routes>
-                </BrowserRouter >
+                <Routes>
+                    <Route path='/login' element={<Login />} />
+                    <Route path='/register' element={<Register />} />
+                    <Route path='/room/create' element={<RoomCreate />} />
+                    <Route element={<RequireAuth />}>
+                        <Route index path="/channel" element={<Main />} />
+                    </Route>
+                </Routes>
             </SocketProvider>
         </AuthProvider>
     );

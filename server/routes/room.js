@@ -1,10 +1,9 @@
 const express = require('express');
 const router = express.Router();
+const jwt = require('jsonwebtoken');
 
 const Room = require('../database/schemas/room');
 const User = require('../database/schemas/user');
-
-const verifyTokenFunction = require('../verifyToken');
 
 const SERECT_WORD = '123456';
 
@@ -24,21 +23,24 @@ const Message = require('../database/schemas/message');
 
 
 const verifyToken = (req, res, next) => {
-    const token = req.header('Authorization');
+    const token = req.cookies.token;
+
     if (token) {
         try {
-            const decoded = verifyTokenFunction(token, SERECT_WORD)
-            // console.log(`Fetched!`);
+            const decoded = jwt.verify(token, SERECT_WORD);
+            req.user = decoded;
             next();
         } catch (error) {
-            // console.log('Token validation error:', error.message);
             return res.status(401).send({ message: 'Access Denied' });
         }
     } else {
-        // console.log('Token not provided');
         return res.status(401).send({ message: 'Access Denied' });
     }
 };
+
+router.get('/api/user', verifyToken, async (req, res) => {
+    res.json({ username: req.user.username, picture: req.user.picture })
+});
 
 //fetches messages from room id
 router.get('/api/room/:roomID/messages', verifyToken, async (req, res) => {

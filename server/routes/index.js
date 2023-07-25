@@ -4,7 +4,7 @@ const router = express.Router();
 const User = require('../database/schemas/user');
 
 const jwt = require('jsonwebtoken');
-const JWT_SERECT = '1234567';
+const JWT_SERECT = '123456';
 
 router.post('/register', async (req, res) => {
 
@@ -29,8 +29,14 @@ router.post('/login', async (req, res) => {
     if (!user) {
         return res.status(400).send({ message: 'User not found' });
     } else {
-        const token = jwt.sign({ user: user.username, picture: user.picture }, JWT_SERECT, { expiresIn: '1h' });
-        return res.status(200).send({ token });
+        const token = jwt.sign({ isLoggedIn: true, username: user.username, picture: user.picture }, JWT_SERECT, { expiresIn: '15m' });
+        res.cookie('token', token, {
+            httpOnly: true,
+            path: '/',
+            sameSite: 'lax',
+            expires: new Date(Date.now() + 900000)
+        });
+        return res.status(200).send({ message: 'Login successful', username: user.username, picture: user.picture });
     }
 });
 

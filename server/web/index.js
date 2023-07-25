@@ -3,7 +3,7 @@ const { instrument } = require('@socket.io/admin-ui');
 const Message = require('../database/schemas/message');
 const Room = require('../database/schemas/room');
 
-const verifyToken =  require('../verifyToken');
+const verifyToken = require('../verifyToken');
 
 const SERECT_WORD = '123456';
 
@@ -19,14 +19,14 @@ module.exports = function setupWebSocket(server) {
 
     channel.on('connection', (socket) => {
 
-        const token = socket.handshake.auth.token;
+        const token = socket.handshake.headers.cookie.split('=')[1];
 
         if (token) {
             try {
 
                 const decoded = verifyToken(token, SERECT_WORD)
-                
-                console.log(`User ${decoded.user} connected. ID ${socket.id}`);
+
+                console.log(`User ${decoded.username} connected. ID ${socket.id}`);
 
                 socket.emit('authenticated', { message: 'Authenticated successfully' });
 

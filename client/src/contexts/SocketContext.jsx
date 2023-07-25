@@ -7,14 +7,14 @@ export const SocketContext = createContext();
 
 export const SocketProvider = ({ children }) => {
 
-    const { user, initialToken } = useAuth();
+    const { isAuthenticated } = useAuth();
     const [socket, setSocket] = useState(null);
     const [socketID, setSocketID] = useState(null);
 
     useEffect(() => {
 
-        if (user && !socket && initialToken) {
-            const newSocket = createSocket(initialToken);
+        if (isAuthenticated && !socket) {
+            const newSocket = createSocket();
             newSocket.on('connect', () => {
                 setSocket(newSocket);
                 setSocketID(newSocket.id);
@@ -24,7 +24,7 @@ export const SocketProvider = ({ children }) => {
             };
         }
 
-    }, [user, socket]);
+    }, [isAuthenticated, socket]);
 
     return (
         <SocketContext.Provider value={{ socket, setSocket, socketID, setSocketID }}>

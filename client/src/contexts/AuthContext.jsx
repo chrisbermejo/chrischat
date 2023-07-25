@@ -1,56 +1,56 @@
-import React, { createContext, useState } from 'react';
-import Cookie from 'universal-cookie';
-import jwt from 'jwt-decode';
+import React, { createContext, useEffect, useState } from 'react';
 import { disconnectSocket } from '../socket';
+import { useNavigate } from 'react-router-dom';
+
 
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
 
-    const isTokenValid = (token) => {
-        if (!token) return false;
+    const navigate = useNavigate();
 
-        const decoded = jwt(token);
-        const currentTime = Date.now() / 1000;
-
-        return decoded.exp > currentTime;
-    };
-
-    const cookies = new Cookie();
-    const initialToken = cookies.get('token');
-    const isAuthenticated = isTokenValid(initialToken);
-
-    const initialUser = initialToken ? jwt(initialToken).user : null;
-    const initialPic = initialToken ? jwt(initialToken).picture : 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png';
-
-    const [user, setUser] = useState(initialUser);
-    const [userProfilePicture, setUserProfilePicture] = useState(initialPic);
-
-    const login = (token) => {
-        const decoded = jwt(token);
-        cookies.set('token', token, {
-            path: '/',
-            sameSite: 'lax',
-            httpOnly: false,
-            expires: new Date(decoded.exp * 1000)
-        });
-        setUser(decoded.user);
-        setUserProfilePicture(decoded.picture);
-    };
+    const [isAuthenticated, setIsAuthenticated] = useState(null);
+    const [user, setUser] = useState(null);
+    const [userProfilePicture, setUserProfilePicture] = useState(null);
 
     const logout = () => {
         disconnectSocket();
         setUser(null);
         setUserProfilePicture(null);
-        cookies.remove('token');
     };
 
-    const checkToken = () => {
-        return cookies.get('token');
-    }
+    useEffect(() => {
+        const fetchUserInformation = async () => {
+            try {
+                const response = await fetch(`http://localhost:8000/api/user`, {
+                    method: 'GET',
+                    credentials: 'include',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                });
+                if (response.ok) {
+                    console.log('user information fetching......')
+                    const data = await response.json();
+                    setUser(data.username);
+                    setUserProfilePicture(data.picture);
+                    setIsAuthenticated(true)
+                    navigate('/channel');
+                } else if (response.status === 401) {
+                    setIsAuthenticated(false);
+                    console.log('Access Denied: You are not authorized to access this resource.');
+                } else {
+                    console.log(`Failed to fetch room messages for room: `);
+                }
+            } catch (error) {
+                console.error('Error fetching room messages:', error);
+            }
+        };
+        fetchUserInformation();
+    }, []);
 
     return (
-        <AuthContext.Provider value={{ user, login, logout, userProfilePicture, isAuthenticated, checkToken }}>
+        <AuthContext.Provider value={{ user, logout, userProfilePicture, isAuthenticated, setIsAuthenticated, setUser, setUserProfilePicture, setIsAuthenticated }}>
             {children}
         </AuthContext.Provider>
     );
