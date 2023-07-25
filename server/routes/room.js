@@ -1,10 +1,10 @@
 const express = require('express');
 const router = express.Router();
-const jwt = require('jsonwebtoken');
 
 const Room = require('../database/schemas/room');
 const User = require('../database/schemas/user');
 
+const verifyTokenFunction = require('../verifyToken');
 const SERECT_WORD = '123456';
 
 router.post('/createRoom', async (req, res) => {
@@ -27,7 +27,7 @@ const verifyToken = (req, res, next) => {
 
     if (token) {
         try {
-            const decoded = jwt.verify(token, SERECT_WORD);
+            const decoded = verifyTokenFunction(token, SERECT_WORD);
             req.user = decoded;
             next();
         } catch (error) {

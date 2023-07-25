@@ -34,10 +34,15 @@ router.post('/login', async (req, res) => {
             httpOnly: true,
             path: '/',
             sameSite: 'lax',
-            expires: new Date(Date.now() + 900000)
+            maxAge: 60 * 1000 * 15
         });
         return res.status(200).send({ message: 'Login successful', username: user.username, picture: user.picture });
     }
+});
+
+router.post('/logout', async (req, res) => {
+    res.clearCookie('token', { path: '/' });
+    return res.status(200).send({ message: 'Logout successful' });
 });
 
 module.exports = router;

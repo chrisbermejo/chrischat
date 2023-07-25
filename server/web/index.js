@@ -19,7 +19,7 @@ module.exports = function setupWebSocket(server) {
 
     channel.on('connection', (socket) => {
 
-        const token = socket.handshake.headers.cookie.split('=')[1];
+        const token = socket.handshake.headers.cookie?.split('=')[1];
 
         if (token) {
             try {
