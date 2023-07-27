@@ -24,7 +24,7 @@ function Chatroom() {
     const [profilePictures, setProfilePictures] = useState({});
     //Store information on the current room in
     const [currentConversationInfo, setCurrentConversationInfo] = useState({
-        conversationID: null,
+        conversationID: 'null',
         conversationName: null,
         conversationPicture: null,
     });
@@ -34,9 +34,9 @@ function Chatroom() {
     const chatMessage = useRef(null);
 
     const sendMessage = () => {
-        if (message !== '') {
+        if (message !== '' && currentConversationInfo.conversationID !== null) {
 
-            socket.emit('join', currentConversationInfo.conversationID, user);
+            // socket.emit('join', currentConversationInfo.conversationID, user);
 
             socket.emit('send_message', {
                 room: currentConversationInfo.conversationID,
@@ -137,16 +137,17 @@ function Chatroom() {
         }
     };
 
-    const handleRoomClick = async (conversation) => {
+    const handleRoomClick = async (conversation, conversationPicture, conversationName) => {
         if (isAuthorized) {
-            setCurrentConversationInfo((prevCurrentConversationInfo) => ({ ...prevCurrentConversationInfo, conversationID: conversation.room, conversationName: conversation.name, conversationPicture: conversation.picture }));
-
+            setCurrentConversationInfo((prevCurrentConversationInfo) => ({ ...prevCurrentConversationInfo, conversationID: conversation.room, conversationName: conversationName, conversationPicture: conversationPicture }));
             if (!conversationMessages[conversation.room]) {
                 await fetchRoomMessages(conversation.room);
             }
-
             conversation.users.forEach((userId) => {
-                if (!profilePictures[userId]) {
+                if (!profilePictures[userId.username] && conversation.isGroupChat === false) {
+                    fetchProfilePictureForUser(userId._id);
+                }
+                else if (!profilePictures[userId] && conversation.isGroupChat === true) {
                     fetchProfilePictureForUser(userId);
                 }
             });
@@ -154,8 +155,7 @@ function Chatroom() {
     };
 
     useEffect(() => {
-        if (socket && currentConversationInfo.conversationID) {
-            socket.emit('join', currentConversationInfo.conversationID, user);
+        if (socket) {
             socket.on('receive_message', (data) => {
                 setConversationMessages((prevConversationMessages) => ({
                     ...prevConversationMessages,
@@ -178,13 +178,21 @@ function Chatroom() {
                 socket.off('receive_message');
             }
         };
-    }, [socket, currentConversationInfo.conversationID]);
+    }, [socket]);
 
     useEffect(() => {
         if (user) {
             fetchRoom();
         };
     }, []);
+
+    useEffect(() => {
+        if (fetchedConversations.length > 0 && socket) {
+            fetchedConversations.forEach((conversations) => {
+                socket.emit('join', conversations.room, user);
+            });
+        };
+    }, [fetchedConversations]);
 
     return (
         <div className='App'>

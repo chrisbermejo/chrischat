@@ -61,7 +61,7 @@ module.exports = function setupWebSocket(server) {
 
         socket.on('join', (room, user) => {
             socket.join(room);
-            console.log(`User: ${user} Joined Room: ${room}`)
+            // console.log(`User: ${user} Joined Room: ${room}`)
             // console.log(socket.handshake.auth)
         });
 

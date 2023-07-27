@@ -62,44 +62,20 @@ router.get('/api/room/:roomID/messages', verifyAccessToken, async (req, res) => 
 });
 
 router.get('/api/user/rooms', verifyAccessToken, async (req, res) => {
-    const fetchedConversation = await Conversation.find({ users: req.user._id });
-    res.json(fetchedConversation);
+    const conversations = await Conversation.find({ users: req.user._id });
+
+    for (const con of conversations) {
+        if (con.isGroupChat === false) {
+            await con.populate('users', 'username picture');
+        }
+    }
+    res.json(conversations);
 });
 
 router.get('/api/user/:userID/profilePicture', verifyAccessToken, async (req, res) => {
     const userID = req.params.userID;
     const user = await User.findOne({ _id: userID });
     res.json(user.picture);
-});
-
-router.post('/createConversation', verifyAccessToken, async (req, res) => {
-    const { name, user } = req.body;
-    const userID = [req.user._id];
-
-    try {
-        for (const e of user) {
-            const id = await User.findOne({ username: e });
-            if (id) {
-                userID.push(id._id);
-            }
-        }
-
-        const newConversation = new Conversation({
-            isGroupChat: true,
-            room: uuidv4(),
-            name: name,
-            users: userID,
-            users_count: userID.length,
-            picture: 'https://images-ext-1.discordapp.net/external/PNLH64xfgvwICQgUWi9Ugld5IIcTgs5fURgaeVjx0g4/https/pbs.twimg.com/media/F15M-yMXoAIcTFz.jpg?width=893&height=583',
-        });
-
-        await newConversation.save();
-
-        res.status(201).send({ message: 'Conversation created successfully' });
-    } catch (error) {
-        console.error('Error creating conversation:', error);
-        res.status(500).send({ error: 'An error occurred while creating the conversation' });
-    }
 });
 
 router.post('/createConversation', verifyAccessToken, async (req, res) => {

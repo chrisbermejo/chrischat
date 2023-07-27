@@ -1,4 +1,5 @@
 import useAuth from '../../hooks/useAuth';
+import { GroupLayout, DmLayout } from './ConversationLayout';
 
 function Nav({ fetchedConversations, currentConversationInfo, handleRoomClick }) {
 
@@ -14,28 +15,26 @@ function Nav({ fetchedConversations, currentConversationInfo, handleRoomClick })
                 <span className='rooms-title-text plus-sign'>+</span>
             </div>
             <div className='rooms'>
-                {fetchedConversations.map((conversation) => (
-                    <div className={`room ${currentConversationInfo.conversationID === conversation.room ? 'current-room' : ''}`} key={conversation.name} onClick={() => { handleRoomClick(conversation) }}>
-                        <div className='room-picture-container'>
-                            <img className='room-picture' height={35} width={35} src={conversation.picture} />
-                        </div>
-                        <div className='room-information'>
-                            <div className='room-name'>{conversation.name}</div>
-                            <div className='room-user-count'>{conversation.users_count === 1 ? '1 Member' : `${conversation.users_count} Members`}</div>
-                        </div>
-                    </div>
+                {fetchedConversations.map((conversation, index) => (
+                    conversation.isGroupChat === true
+                        ? <GroupLayout key={`Conversation${index}`} conversation={conversation} currentConversationInfo={currentConversationInfo} handleRoomClick={handleRoomClick} />
+                        : <DmLayout key={`Conversation${index}`} conversation={conversation} currentConversationInfo={currentConversationInfo} handleRoomClick={handleRoomClick} />
                 ))}
             </div>
-            <div className='user-info-container'>
-                <div className='user-info'>
-                    <img height={50} src={userProfilePicture} className='user-info-avatar' alt='avatar' />
-                    <div>
-                        <div>
+            <div className='nav-footer'>
+                <div className='user-info-container'>
+                    <div className='user-info'>
+                        <img src={userProfilePicture} className='user--avatar' alt={user} />
+                        <div className='user--name'>
                             {user}
                         </div>
-                        <div>
-                            <button onClick={() => { logout(); }}> Logout </button>
-                        </div>
+                    </div>
+                    <div className='setting-container'>
+                        <button className='setting-button' onClick={() => { logout(); }}>
+                            <span class="material-symbols-outlined">
+                                settings
+                            </span>
+                        </button>
                     </div>
                 </div>
             </div>
