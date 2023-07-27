@@ -3,23 +3,23 @@ require('dotenv').config()
 const { Server } = require('socket.io');
 const { instrument } = require('@socket.io/admin-ui');
 const Message = require('../database/schemas/message');
-const Room = require('../database/schemas/room');
+const Conversation = require('../database/schemas/conversations');
 
 const verifyToken = require('../verifyToken');
 
 function getAccessTokenFromCookies(cookies) {
     if (!cookies) {
-      return null;
+        return null;
     }
-  
+
     const tokenCookie = cookies.find((cookie) => cookie.trim().startsWith('access_token='));
-  
+
     if (!tokenCookie) {
-      return null;
+        return null;
     }
-  
+
     return tokenCookie.split('=')[1];
-  }
+}
 
 module.exports = function setupWebSocket(server) {
     const io = new Server(server, {
@@ -59,9 +59,9 @@ module.exports = function setupWebSocket(server) {
             return;
         }
 
-        socket.on('join', (room) => {
+        socket.on('join', (room, user) => {
             socket.join(room);
-            console.log(`User Joined Room: ${room}`)
+            console.log(`User: ${user} Joined Room: ${room}`)
             // console.log(socket.handshake.auth)
         });
 
@@ -71,6 +71,7 @@ module.exports = function setupWebSocket(server) {
         });
 
         socket.on('send_message', async (data) => {
+
 
             const messageObj = {
                 room: data.room,
@@ -84,7 +85,7 @@ module.exports = function setupWebSocket(server) {
             const newMessages = new Message(messageObj);
             await newMessages.save();
 
-            const room = await Room.findOne({ id: data.room });
+            const room = await Conversation.findOne({ room: data.room });
             room.mostRecentMessageDate = data.date;
             await room.save();
 

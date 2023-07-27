@@ -298,6 +298,7 @@ body,
 
 .chatroom-title-picture {
     border-radius: var(--picture);
+    object-fit: cover;
 }
 
 .rooms-title {
@@ -349,6 +350,7 @@ body,
 
 .room-picture {
     border-radius: var(--picture);
+    object-fit: cover;
 }
 
 .finder-container {

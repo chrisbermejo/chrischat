@@ -3,28 +3,30 @@ import React, { useState, useEffect, useRef } from 'react';
 import useSocket from '../hooks/useSocket';
 import useAuth from '../hooks/useAuth';
 
+import Nav from '../components/Nav/Nav'
+import Chat from '../components/Chatroom/Chat'
+import InputBar from '../components/Chatroom/InputBar'
+
 import '../App.css';
 
 function Chatroom() {
-
-    const DEFAULT_PICTURE = 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png'
     //Socket info
     const { socket, socketID } = useSocket();
     //User info
-    const { user, userProfilePicture, logout, checkToken } = useAuth();
+    const { user } = useAuth();
     //Probably rename this to Input
     const [message, setMessage] = useState('');
     //Stores user's rooms
-    const [fetchedRooms, setfetchedRooms] = useState([]);
+    const [fetchedConversations, setFetchedConversations] = useState([]);
     //Stores messages for users' rooms
-    const [roomMessages, setRoomMessages] = useState({});
+    const [conversationMessages, setConversationMessages] = useState({});
     //Stores profile pictures of users in users' rooms
     const [profilePictures, setProfilePictures] = useState({});
     //Store information on the current room in
-    const [currentRoomInfo, setCurrentRoomInfo] = useState({
-        roomID: null,
-        roomName: null,
-        roomPicture: null,
+    const [currentConversationInfo, setCurrentConversationInfo] = useState({
+        conversationID: null,
+        conversationName: null,
+        conversationPicture: null,
     });
 
     const [isAuthorized, setIsAuthorized] = useState(true);
@@ -34,10 +36,10 @@ function Chatroom() {
     const sendMessage = () => {
         if (message !== '') {
 
-            socket.emit('join', currentRoomInfo.roomID);
+            socket.emit('join', currentConversationInfo.conversationID, user);
 
             socket.emit('send_message', {
-                room: currentRoomInfo.roomID,
+                room: currentConversationInfo.conversationID,
                 id: socketID,
                 user: user,
                 message: message,
@@ -75,7 +77,7 @@ function Chatroom() {
             });
             if (response.ok) {
                 const data = await response.json();
-                setRoomMessages((prevRoomMessages) => ({ ...prevRoomMessages, [roomID]: data }));
+                setConversationMessages((prevConversationMessages) => ({ ...prevConversationMessages, [roomID]: data }));
             } else if (response.status === 401) {
                 setIsAuthorized(false);
                 console.log('Access Denied: You are not authorized to access this resource.');
@@ -123,7 +125,7 @@ function Chatroom() {
             if (response.ok) {
                 const data = await response.json();
                 data.sort((a, b) => new Date(b.mostRecentMessageDate) - new Date(a.mostRecentMessageDate));
-                setfetchedRooms(data);
+                setFetchedConversations(data);
             } else if (response.status === 401) {
                 setIsAuthorized(false);
                 console.log('Access Denied: You are not authorized to access this resource.');
@@ -135,26 +137,15 @@ function Chatroom() {
         }
     };
 
-    const handleKeyPress = (e) => {
-        if (e.key === 'Enter' && e.shiftKey) {
-            e.target.rows = e.target.rows + 1;
-        }
-        if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault();
-            sendMessage();
-            setMessage('');
-        }
-    };
-
-    const handleRoomClick = async (room) => {
+    const handleRoomClick = async (conversation) => {
         if (isAuthorized) {
-            setCurrentRoomInfo((prevProfilePictures) => ({ ...prevProfilePictures, roomID: room.id, roomName: room.name, roomPicture: room.picture }));
+            setCurrentConversationInfo((prevCurrentConversationInfo) => ({ ...prevCurrentConversationInfo, conversationID: conversation.room, conversationName: conversation.name, conversationPicture: conversation.picture }));
 
-            if (!roomMessages[room.id]) {
-                await fetchRoomMessages(room.id);
+            if (!conversationMessages[conversation.room]) {
+                await fetchRoomMessages(conversation.room);
             }
 
-            room.users.forEach((userId) => {
+            conversation.users.forEach((userId) => {
                 if (!profilePictures[userId]) {
                     fetchProfilePictureForUser(userId);
                 }
@@ -163,29 +154,20 @@ function Chatroom() {
     };
 
     useEffect(() => {
-        if (socket && currentRoomInfo.roomID) {
-
-            socket.emit('join', currentRoomInfo.roomID);
-
-
-            //data.room is the room ID
-            //data is the recieve message
-
-            //prevRooms.id is the room ID
-            //prevRooms is the fetched room object
+        if (socket && currentConversationInfo.conversationID) {
+            socket.emit('join', currentConversationInfo.conversationID, user);
             socket.on('receive_message', (data) => {
-
-                setRoomMessages((prevRoomMessages) => ({
-                    ...prevRoomMessages,
-                    [data.room]: [...(prevRoomMessages[data.room] || []), data],
+                setConversationMessages((prevConversationMessages) => ({
+                    ...prevConversationMessages,
+                    [data.room]: [...(prevConversationMessages[data.room] || []), data],
                 }));
 
-                setfetchedRooms((prevRooms) => {
-                    if (prevRooms.length > 0 && prevRooms[0].id === data.room) {
+                setFetchedConversations((prevRooms) => {
+                    if (prevRooms.length > 0 && prevRooms[0].room === data.room) {
                         return prevRooms;
                     }
-                    const updatedRooms = prevRooms.filter((r) => r.id !== data.room);
-                    const roomToUpdate = prevRooms.find((r) => r.id === data.room);
+                    const updatedRooms = prevRooms.filter((r) => r.room !== data.room);
+                    const roomToUpdate = prevRooms.find((r) => r.room === data.room);
                     return [roomToUpdate, ...updatedRooms];
                 });
             });
@@ -196,88 +178,29 @@ function Chatroom() {
                 socket.off('receive_message');
             }
         };
-    }, [socket, currentRoomInfo.roomID]);
-
-    useEffect(() => {
-        if (chatMessage.current) {
-            chatMessage.current.scrollIntoView();
-        }
-    }, [roomMessages, currentRoomInfo.roomID]);
+    }, [socket, currentConversationInfo.conversationID]);
 
     useEffect(() => {
         if (user) {
-            fetchRoom(user);
+            fetchRoom();
         };
     }, []);
 
     return (
         <div className='App'>
-            <div className='Nav'>
-                <div className='finder-container'>
-                    <button className='finder'>Find or start a conersation</button>
-                </div>
-                <div className='rooms-title'>
-                    <span className='rooms-title-text'>DIRECT MESSAGES</span>
-                    <span className='rooms-title-text plus-sign'>+</span>
-                </div>
-                <div className='rooms'>
-                    {fetchedRooms.map((room) => (
-                        <div className={`room ${currentRoomInfo.roomID === room.id ? 'current-room' : ''}`} key={room.name} onClick={() => { handleRoomClick(room) }}>
-                            <div className='room-picture-container'>
-                                <img className='room-picture' height={35} width={35} src={room.picture} />
-                            </div>
-                            <div className='room-information'>
-                                <div className='room-name'>{room.name}</div>
-                                <div className='room-user-count'>{room.users_count === 1 ? '1 Member' : `${room.users_count} Members`}</div>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-                <div className='user-info-container'>
-                    <div className='user-info'>
-                        <img height={50} src={userProfilePicture} className='user-info-avatar' alt='avatar' />
-                        <div>
-                            <div>
-                                {user}
-                            </div>
-                            <div>
-                                <button onClick={() => { logout(); }}> Logout </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <Nav fetchedConversations={fetchedConversations} currentConversationInfo={currentConversationInfo} handleRoomClick={handleRoomClick} />
             <div className="chatroom">
                 <div className='chatroom-title-container-container'>
                     <div className='chatroom-title-container'>
-                        {currentRoomInfo.roomPicture !== null ? <img className='chatroom-title-picture' height={40} width={40} src={currentRoomInfo.roomPicture} alt='room-picture' /> : null}
-                        <h2 className='chatroom-title'>{currentRoomInfo.roomName}</h2>
+                        {currentConversationInfo.conversationPicture !== null ? <img className='chatroom-title-picture' height={40} width={40} src={currentConversationInfo.conversationPicture} alt='conversation-picture' /> : null}
+                        <h2 className='chatroom-title'>{currentConversationInfo.conversationName}</h2>
                     </div>
                 </div>
                 <div className='chatroom-chat-container'>
-                    <div className='chatroom-chat'>
-                        {(roomMessages[currentRoomInfo.roomID] || []).map((message, index) => (
-                            <div key={index} ref={index === roomMessages[currentRoomInfo.roomID].length - 1 ? chatMessage : null} className={message.user === user ? 'chatroom-message-container client-con' : 'chatroom-message-container other-con'}>
-                                <div className={message.user === user ? 'chatroom-message client' : 'chatroom-message other'}>
-                                    <div className='chatroom-message-username'>-{message.user}</div>
-                                    <div className='chatroom-message-text'>{message.message}</div>
-                                    <div className='chatroom-message-time'>{message.time}</div>
-                                </div>
-                                <img src={message.user === user ? userProfilePicture : profilePictures[message.user] || DEFAULT_PICTURE} className='chatroom-message-avatar' alt='avatar' />
-                            </div>
-                        ))}
-                    </div>
+                    <Chat conversationMessages={conversationMessages} currentConversationInfo={currentConversationInfo} chatMessage={chatMessage} profilePictures={profilePictures} />
                 </div>
                 <div className='chatroom-inputs-container'>
-                    <textarea
-                        rows={1}
-                        className='chatroom-input'
-                        type="text"
-                        placeholder="Message..."
-                        value={message}
-                        onChange={(e) => setMessage(e.target.value)}
-                        onKeyPress={handleKeyPress}
-                    />
+                    <InputBar sendMessage={sendMessage} message={message} setMessage={setMessage} />
                 </div>
             </div>
         </div >

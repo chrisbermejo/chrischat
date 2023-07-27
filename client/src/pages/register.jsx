@@ -18,6 +18,7 @@ function App() {
             const response = await fetch('http://localhost:8000/register', {
                 method: 'POST',
                 headers: {
+                    'Cache-Control': 'no-cache',
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify(updatedFormData)

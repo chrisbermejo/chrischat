@@ -1,9 +1,10 @@
 const mongoose = require('mongoose');
 
-const RoomSchema = new mongoose.Schema({
-    id: String,
+const ConversationSchema = new mongoose.Schema({
+    isGroupChat: { type: Boolean, default: false},
+    room: String,
     name: String,
-    users: Array,
+    users: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
     users_count: Number,
     picture: String,
     mostRecentMessageDate: {
@@ -18,9 +19,9 @@ const RoomSchema = new mongoose.Schema({
             minute: '2-digit',
             second: '2-digit'
         }),
-    }
+    },
 });
 
-const Room = mongoose.model('rooms', RoomSchema);
+const Conversation = mongoose.model('conversation', ConversationSchema);
 
-module.exports = Room;
+module.exports = Conversation;

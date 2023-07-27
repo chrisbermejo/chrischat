@@ -7,13 +7,13 @@ function Room() {
 
         const updatedFormData = {
             name: e.target.name.value,
-            id: e.target.id.value,
-            user: ['joe']
+            user: ['nyex']
         };
 
         try {
-            const response = await fetch('http://localhost:8000/createRoom', {
+            const response = await fetch('http://localhost:8000/createConversation', {
                 method: 'POST',
+                credentials: 'include',
                 headers: {
                     'Content-Type': 'application/json'
                 },
@@ -41,10 +41,10 @@ function Room() {
                         <label htmlFor='name' >NAME</label>
                         <input type='text' name='name' required />
                     </div>
-                    <div className='form-input'>
+                    {/* <div className='form-input'>
                         <label htmlFor='id' >ID <span className='required__star'>*</span></label>
                         <input type='text' name='id' required />
-                    </div>
+                    </div> */}
                     <input className='form-button-submit' type='submit' value='Login' />
                 </form>
             </div>

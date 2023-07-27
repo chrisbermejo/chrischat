@@ -39,20 +39,22 @@ export const AuthProvider = ({ children }) => {
                     method: 'GET',
                     credentials: 'include',
                     headers: {
+                        'Cache-Control': 'no-cache',
                         'Content-Type': 'application/json'
                     },
                 });
-                if (response.ok) {
+                if (response.ok && response.status === 200) {
                     const data = await response.json();
                     setUser(data.username);
                     setUserProfilePicture(data.picture);
-                    setIsAuthenticated(true);
-                    navigate('/channel');
-                } else {
-                    console.log(`User has to sign in: ${response.status}`);
+                    setIsAuthenticated(data.isLoggedIn);
+                    // navigate('/channel');
+                } else if (response.status === 401) {
                     setIsAuthenticated(false);
+                    console.log(`User has to sign in: ${response.status}`);
                 }
             } catch (error) {
+                setIsAuthenticated(false);
                 console.error('Error fetching user information:', error);
             }
         };
