@@ -1,15 +1,11 @@
-import React, { useState, useEffect, useRef } from 'react';
-
+import React, { createContext, useEffect, useState, useRef } from 'react';
 import useSocket from '../hooks/useSocket';
 import useAuth from '../hooks/useAuth';
 
-import Nav from '../components/Nav/Nav'
-import Chat from '../components/Chatroom/Chat'
-import InputBar from '../components/Chatroom/InputBar'
+export const InfoContext = createContext();
 
-import '../App.css';
+export const InfoProvider = ({ children }) => {
 
-function Chatroom() {
     //Socket info
     const { socket, socketID } = useSocket();
     //User info
@@ -190,32 +186,28 @@ function Chatroom() {
         };
     }, [fetchedConversations]);
 
-    // useEffect(() => {
-    //     if (profilePictures) {
-    //         console.log(profilePictures)
-    //         console.log(conversationMessages)
-    //     };
-    // }, [profilePictures]);
 
     return (
-        <div className='App'>
-            <Nav fetchedConversations={fetchedConversations} currentConversationInfo={currentConversationInfo} handleRoomClick={handleRoomClick} />
-            <div className="chatroom">
-                <div className='chatroom-title-container-container'>
-                    <div className='chatroom-title-container'>
-                        {currentConversationInfo.conversationPicture !== null ? <img className='chatroom-title-picture' height={40} width={40} src={currentConversationInfo.conversationPicture} alt='conversation-picture' /> : null}
-                        <h2 className='chatroom-title'>{currentConversationInfo.conversationName}</h2>
-                    </div>
-                </div>
-                <div className='chatroom-chat-container'>
-                    <Chat conversationMessages={conversationMessages} currentConversationInfo={currentConversationInfo} chatMessage={chatMessage} profilePictures={profilePictures} />
-                </div>
-                <div className='chatroom-inputs-container'>
-                    <InputBar sendMessage={sendMessage} message={message} setMessage={setMessage} />
-                </div>
-            </div>
-        </div >
+        <InfoContext.Provider value={{
+            message,
+            setMessage,
+            fetchedConversations,
+            setFetchedConversations,
+            setProfilePictures,
+            profilePictures,
+            conversationMessages,
+            setConversationMessages,
+            currentConversationInfo,
+            setCurrentConversationInfo,
+            chatMessage,
+            isAuthorized,
+            setIsAuthorized,
+            sendMessage,
+            fetchRoomMessages,
+            fetchRoom,
+            handleRoomClick
+        }}>
+            {children}
+        </InfoContext.Provider>
     );
-}
-
-export default Chatroom;
+};

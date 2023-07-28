@@ -1,4 +1,8 @@
-function InputBar({ sendMessage, message, setMessage }) {
+import useInfo from '../../hooks/useInfo'
+
+function InputBar() {
+
+    const { sendMessage, message, setMessage } = useInfo();
 
     const handleKeyPress = (e) => {
         if (e.key === 'Enter' && e.shiftKey) {
@@ -12,15 +16,17 @@ function InputBar({ sendMessage, message, setMessage }) {
     };
 
     return (
-        <textarea
-            rows={1}
-            className='chatroom-input'
-            type="text"
-            placeholder="Message..."
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            onKeyPress={handleKeyPress}
-        />
+        <div className='chatroom-inputs-container'>
+            <textarea
+                rows={1}
+                className='chatroom-input'
+                type="text"
+                placeholder="Message..."
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                onKeyPress={handleKeyPress}
+            />
+        </div>
     );
 }
 

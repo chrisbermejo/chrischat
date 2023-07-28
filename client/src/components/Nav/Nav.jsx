@@ -1,9 +1,11 @@
 import useAuth from '../../hooks/useAuth';
+import useInfo from '../../hooks/useInfo';
 import { GroupLayout, DmLayout } from './ConversationLayout';
 
-function Nav({ fetchedConversations, currentConversationInfo, handleRoomClick }) {
+function Nav() {
 
     const { user, userProfilePicture, logout } = useAuth();
+    const { fetchedConversations, currentConversationInfo, handleRoomClick } = useInfo();
 
     return (
         <div className='Nav'>

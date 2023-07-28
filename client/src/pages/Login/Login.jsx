@@ -1,8 +1,8 @@
 import React from 'react';
-import { createSocket } from '../socket';
+import { createSocket } from '../../socket';
 import { useNavigate } from 'react-router-dom';
-import useSocket from '../hooks/useSocket';
-import useAuth from '../hooks/useAuth';
+import useSocket from '../../hooks/useSocket';
+import useAuth from '../../hooks/useAuth';
 
 function Login() {
 

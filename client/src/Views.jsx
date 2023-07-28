@@ -1,9 +1,9 @@
 import React from 'react';
 
 import { Routes, Route } from 'react-router-dom';
-import Main from './pages/main';
-import Login from './pages/login';
-import Register from './pages/register';
+import App from './pages/App/Layout';
+import Login from './pages/Login/Login';
+import Register from './pages/Register/Register';
 import RoomCreate from './pages/room'
 import RequireAuth from './components/RequireAuth';
 
@@ -19,7 +19,7 @@ export default function Views() {
             <Route path='/register' element={<Register />} />
             <Route path='/room/create' element={<RoomCreate />} />
             <Route element={<RequireAuth />}>
-                <Route index path="/channel" element={<Main />} />
+                <Route index path="/channel" element={<App />} />
             </Route>
             <Route path='*' element={<Login />} />
         </Routes>
