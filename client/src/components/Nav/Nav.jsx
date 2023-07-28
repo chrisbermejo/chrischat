@@ -12,7 +12,7 @@ function Nav({ fetchedConversations, currentConversationInfo, handleRoomClick })
             </div>
             <div className='friend-container'>
                 <div className='friend-button'>
-                    <span class="friend-logo material-symbols-outlined">group</span>
+                    <span className="friend-logo material-symbols-outlined">group</span>
                     <span>Friends</span>
                 </div>
             </div>
@@ -37,7 +37,7 @@ function Nav({ fetchedConversations, currentConversationInfo, handleRoomClick })
                     </div>
                     <div className='setting-container'>
                         <button className='setting-button' onClick={() => { logout(); }}>
-                            <span class="material-symbols-outlined">
+                            <span className="material-symbols-outlined">
                                 settings
                             </span>
                         </button>

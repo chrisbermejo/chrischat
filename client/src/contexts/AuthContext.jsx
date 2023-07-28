@@ -2,7 +2,6 @@ import React, { createContext, useEffect, useState } from 'react';
 import { disconnectSocket } from '../socket';
 import { useNavigate } from 'react-router-dom';
 
-
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {

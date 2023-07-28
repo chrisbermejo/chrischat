@@ -62,13 +62,7 @@ router.get('/api/room/:roomID/messages', verifyAccessToken, async (req, res) => 
 });
 
 router.get('/api/user/rooms', verifyAccessToken, async (req, res) => {
-    const conversations = await Conversation.find({ users: req.user._id });
-
-    for (const con of conversations) {
-        if (con.isGroupChat === false) {
-            await con.populate('users', 'username picture');
-        }
-    }
+    const conversations = await Conversation.find({ users: req.user._id }).populate('users', 'username picture');
     res.json(conversations);
 });
 

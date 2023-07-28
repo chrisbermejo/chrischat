@@ -8,7 +8,9 @@
       {
         "ignore": [
           "width: fit-content",
-          "scrollbar-gutter"
+          "scrollbar-gutter",
+          "scrollbar-width",
+          "scrollbar-color"
         ]
       }
     ]

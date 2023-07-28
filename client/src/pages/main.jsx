@@ -89,29 +89,29 @@ function Chatroom() {
         }
     };
 
-    const fetchProfilePictureForUser = async (userId) => {
-        try {
-            const response = await fetch(`http://localhost:8000/api/user/${userId}/profilePicture`, {
-                method: 'GET',
-                credentials: 'include',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-            });
+    // const fetchProfilePictureForUser = async (userId) => {
+    //     try {
+    //         const response = await fetch(`http://localhost:8000/api/user/${userId}/profilePicture`, {
+    //             method: 'GET',
+    //             credentials: 'include',
+    //             headers: {
+    //                 'Content-Type': 'application/json'
+    //             },
+    //         });
 
-            if (response.ok) {
-                const data = await response.json();
-                setProfilePictures((prevProfilePictures) => ({ ...prevProfilePictures, [userId]: data }));
-            } else if (response.status === 401) {
-                setIsAuthorized(false);
-                console.log('Access Denied: You are not authorized to access this resource.');
-            } else {
-                console.log(`Failed to fetch profile picture for user: ${userId}`);
-            }
-        } catch (error) {
-            console.error('Error fetching profile picture:', error);
-        }
-    };
+    //         if (response.ok) {
+    //             const data = await response.json();
+    //             setProfilePictures((prevProfilePictures) => ({ ...prevProfilePictures, [userId]: data }));
+    //         } else if (response.status === 401) {
+    //             setIsAuthorized(false);
+    //             console.log('Access Denied: You are not authorized to access this resource.');
+    //         } else {
+    //             console.log(`Failed to fetch profile picture for user: ${userId}`);
+    //         }
+    //     } catch (error) {
+    //         console.error('Error fetching profile picture:', error);
+    //     }
+    // };
 
     const fetchRoom = async () => {
         try {
@@ -144,12 +144,7 @@ function Chatroom() {
                 await fetchRoomMessages(conversation.room);
             }
             conversation.users.forEach((userId) => {
-                if (!profilePictures[userId.username] && conversation.isGroupChat === false) {
-                    fetchProfilePictureForUser(userId._id);
-                }
-                else if (!profilePictures[userId] && conversation.isGroupChat === true) {
-                    fetchProfilePictureForUser(userId);
-                }
+                setProfilePictures((prevProfilePictures) => ({ ...prevProfilePictures, [userId.username]: userId.picture }));
             });
         }
     };
@@ -188,11 +183,19 @@ function Chatroom() {
 
     useEffect(() => {
         if (fetchedConversations.length > 0 && socket) {
+            console.log(fetchedConversations)
             fetchedConversations.forEach((conversations) => {
                 socket.emit('join', conversations.room, user);
             });
         };
     }, [fetchedConversations]);
+
+    // useEffect(() => {
+    //     if (profilePictures) {
+    //         console.log(profilePictures)
+    //         console.log(conversationMessages)
+    //     };
+    // }, [profilePictures]);
 
     return (
         <div className='App'>

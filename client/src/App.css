@@ -103,6 +103,7 @@ body,
 .material-symbols-outlined {
     color: rgb(155, 155, 155);
     font-size: 1.4em;
+    line-height: .86;
 }
 
 .chatroom {
