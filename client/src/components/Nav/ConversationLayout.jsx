@@ -3,8 +3,8 @@ import useAuth from "../../hooks/useAuth"
 export const GroupLayout = ({ conversation, currentConversationInfo, handleRoomClick }) => {
     return (
         <div className={`room ${currentConversationInfo.conversationID === conversation.room ? 'current-room' : ''}`} key={conversation.name} onClick={() => { handleRoomClick(conversation, conversation.picture, conversation.name) }}>
-            <div className='room-picture-container'>
-                <img className='room-picture' height={35} width={35} src={conversation.picture} alt="room-picture" />
+            <div className='conversation-picture-container'>
+                <img className='conversation-picture' src={conversation.picture} alt="room-picture" />
             </div>
             <div className='room-information'>
                 <div className='room-name'>{conversation.name}</div>
@@ -21,8 +21,8 @@ export const DmLayout = ({ conversation, currentConversationInfo, handleRoomClic
 
     return (
         <div className={`room ${currentConversationInfo.conversationID === conversation.room ? 'current-room' : ''}`} key={conversation.name} onClick={() => { handleRoomClick(conversation, otherUser.picture, otherUser.username) }}>
-            <div className='room-picture-container'>
-                <img className='room-picture' height={35} width={35} src={otherUser.picture} alt="room-picture" />
+            <div className='conversation-picture-container'>
+                <img className='conversation-picture' src={otherUser.picture} alt="room-picture" />
             </div>
             <div className='room-information'>
                 <div className='room-name'>{otherUser.username}</div>

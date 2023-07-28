@@ -405,13 +405,15 @@ body,
     font-size: .75rem;
 }
 
-.room-picture-container {
+.conversation-picture-container {
     height: 35px;
 }
 
-.room-picture {
+.conversation-picture {
     border-radius: var(--picture);
     object-fit: cover;
+    height: 35px;
+    width: 35px;
 }
 
 .finder-container {
