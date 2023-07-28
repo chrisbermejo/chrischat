@@ -11,6 +11,8 @@ input[type=submit] {
 
 :root {
     --picture: 50%;
+    --selected: 6px;
+    --color-selected: rgba(0, 0, 0, 0.116);
 }
 
 /* input:-internal-autofill-selected {
@@ -41,6 +43,25 @@ body,
     margin-top: auto;
 }
 
+.friend-container {
+    padding-right: .5rem;
+    margin-top: .4rem;
+}
+
+.friend-logo {
+    padding: 0 .6rem;
+}
+
+.friend-button {
+    height: 42px;
+    margin: .2rem .5rem;
+    display: flex;
+    align-items: center;
+    font-size: 1.05rem;
+    gap: .2rem;
+    border-radius: var(--selected);
+}
+
 .user-info-container {
     background-color: rgba(0, 0, 0, 0.253);
     padding: .4rem .8rem;
@@ -62,7 +83,7 @@ body,
 }
 
 .setting-button {
-    font-size: 20px;
+    font-size: 16px;
     display: flex;
     background-color: transparent;
     outline: none;
@@ -70,17 +91,18 @@ body,
     height: 34px;
     width: 34px;
     align-items: center;
+    justify-content: center;
 }
 
 .user-info:hover,
 .setting-button:hover {
     background-color: rgba(255, 255, 255, 0.116);
-    border-radius: 4px;
+    border-radius: var(--selected);
 }
 
 .material-symbols-outlined {
     color: rgb(155, 155, 155);
-    font-size: unset;
+    font-size: 1.4em;
 }
 
 .chatroom {
@@ -341,6 +363,7 @@ body,
     display: flex;
     justify-content: space-between;
     padding: .5rem .5rem;
+    padding-top: 0rem;
     align-items: baseline;
     cursor: default;
 }
@@ -363,13 +386,14 @@ body,
     border-radius: 4px;
 }
 
-.room:hover {
+.room:hover,
+.friend-button:hover {
     cursor: pointer;
-    background-color: rgba(0, 0, 0, 0.116);
+    background-color: rgb(197 197 197 / 6%);
 }
 
 .current-room {
-    background-color: rgba(0, 0, 0, 0.212);
+    background-color: rgb(197 197 197 / 16%);
 }
 
 .room-name {

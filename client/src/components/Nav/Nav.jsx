@@ -10,6 +10,12 @@ function Nav({ fetchedConversations, currentConversationInfo, handleRoomClick })
             <div className='finder-container'>
                 <button className='finder'>Find or start a conersation</button>
             </div>
+            <div className='friend-container'>
+                <div className='friend-button'>
+                    <span class="friend-logo material-symbols-outlined">group</span>
+                    <span>Friends</span>
+                </div>
+            </div>
             <div className='rooms-title'>
                 <span className='rooms-title-text'>DIRECT MESSAGES</span>
                 <span className='rooms-title-text plus-sign'>+</span>
