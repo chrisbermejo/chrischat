@@ -5,7 +5,7 @@ import { GroupLayout, DmLayout } from './ConversationLayout';
 function Nav() {
 
     const { user, userProfilePicture, logout } = useAuth();
-    const { fetchedConversations, currentConversationInfo, handleRoomClick } = useInfo();
+    const { fetchedConversations, currentTab, handleRoomClick } = useInfo();
 
     return (
         <div className='Nav'>
@@ -13,7 +13,9 @@ function Nav() {
                 <button className='finder'>Find or start a conersation</button>
             </div>
             <div className='friend-container'>
-                <div className='friend-button'>
+                <div className={`friend-button ${currentTab.type === 'friend' ? 'current-room' : ''}`} onClick={() => {
+                    handleRoomClick({ type: 'friend' })
+                }}>
                     <span className="friend-logo material-symbols-outlined">group</span>
                     <span>Friends</span>
                 </div>
@@ -25,8 +27,8 @@ function Nav() {
             <div className='rooms'>
                 {fetchedConversations.map((conversation, index) => (
                     conversation.isGroupChat === true
-                        ? <GroupLayout key={`Conversation${index}`} conversation={conversation} currentConversationInfo={currentConversationInfo} handleRoomClick={handleRoomClick} />
-                        : <DmLayout key={`Conversation${index}`} conversation={conversation} currentConversationInfo={currentConversationInfo} handleRoomClick={handleRoomClick} />
+                        ? <GroupLayout key={`Conversation${index}`} conversation={conversation} currentTab={currentTab} handleRoomClick={handleRoomClick} />
+                        : <DmLayout key={`Conversation${index}`} conversation={conversation} currentTab={currentTab} handleRoomClick={handleRoomClick} />
                 ))}
             </div>
             <div className='nav-footer'>

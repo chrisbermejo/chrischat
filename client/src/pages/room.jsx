@@ -7,7 +7,7 @@ function Room() {
 
         const updatedFormData = {
             name: e.target.name.value,
-            user: ['nyex']
+            user: ['joe', 'john', 'edwin']
         };
 
         try {

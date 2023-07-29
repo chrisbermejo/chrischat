@@ -2,7 +2,7 @@ import useInfo from '../../hooks/useInfo'
 
 function InputBar() {
 
-    const { sendMessage, message, setMessage } = useInfo();
+    const { sendMessage, message, setMessage, currentTab } = useInfo();
 
     const handleKeyPress = (e) => {
         if (e.key === 'Enter' && e.shiftKey) {
@@ -15,7 +15,7 @@ function InputBar() {
         }
     };
 
-    return (
+    return currentTab.type === 'conversations' ? (
         <div className='chatroom-inputs-container'>
             <textarea
                 rows={1}
@@ -27,7 +27,7 @@ function InputBar() {
                 onKeyPress={handleKeyPress}
             />
         </div>
-    );
+    ) : null
 }
 
 export default InputBar;

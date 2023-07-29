@@ -4,6 +4,7 @@ const router = express.Router();
 const User = require('../database/schemas/user');
 const Message = require('../database/schemas/message');
 const Conversation = require('../database/schemas/conversations');
+const FriendList = require('../database/schemas/friendList');
 
 const jwt = require('jsonwebtoken');
 const { v4: uuidv4 } = require('uuid');
@@ -22,6 +23,7 @@ const verifyAccessToken = async (req, res, next) => {
             const decoded = jwt.verify(accesstoken, process.env.ACCESS_TOKEN_SECRET);
             const user = await User.findOne({ username: decoded.username, picture: decoded.picture });
             req.user = user;
+            // console.log(req.user)
             return next();
         } else {
             // If the access token is not present, attempt to refresh it using the refresh token
@@ -85,7 +87,7 @@ router.post('/createConversation', verifyAccessToken, async (req, res) => {
         }
 
         const newConversation = new Conversation({
-            isGroupChat: false,
+            isGroupChat: true,
             room: uuidv4(),
             name: name,
             users: userID,
@@ -100,6 +102,58 @@ router.post('/createConversation', verifyAccessToken, async (req, res) => {
         console.error('Error creating conversation:', error);
         res.status(500).send({ error: 'An error occurred while creating the conversation' });
     }
+});
+
+router.post('/addFriend/:username', verifyAccessToken, async (req, res) => {
+    const username = req.params.username;
+
+    try {
+        const user = await User.findOne({ username: username });
+        if (!user) {
+            return res.status(404).send({ error: 'User not found' });
+        }
+
+        // Find the friend list of the current user
+        const friendList = await FriendList.findOne({ user: req.user._id });
+
+        // Check if the user is already a friend in the friend list
+        const isFriend = friendList.friends.some((friend) => friend.user.equals(user._id));
+
+        if (isFriend) {
+            return res.status(400).send({ error: 'User is already a friend' });
+        }
+
+        const otherFriendList = await FriendList.findOne({ user: user._id });
+
+        // Add the new friend to the friend list
+
+        const list = {
+            user: user._id,
+            status: 'pending',
+            sender: req.user._id,
+            receiver: user._id,
+        }
+
+        friendList.friends.push(list);
+
+        // Save the updated friend list
+        await friendList.save();
+
+        list.user = req.user._id;
+        otherFriendList.friends.push(list);
+
+        await otherFriendList.save();
+
+        res.status(200).send({ message: 'Friend request sent successfully' });
+    } catch (error) {
+        console.error('Error adding friend:', error);
+        res.status(500).send({ error: 'An error occurred while adding the friend' });
+    }
+});
+
+router.get('/api/user/friendlist', verifyAccessToken, async (req, res) => {
+    const friendList = await FriendList.findOne({ user: req.user._id }).populate('friends.user', 'username picture').populate('friends.sender', 'username');
+    res.json(friendList.friends);
 });
 
 module.exports = router;

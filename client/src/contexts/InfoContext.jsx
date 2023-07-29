@@ -19,23 +19,24 @@ export const InfoProvider = ({ children }) => {
     //Stores profile pictures of users in users' rooms
     const [profilePictures, setProfilePictures] = useState({});
     //Store information on the current room in
-    const [currentConversationInfo, setCurrentConversationInfo] = useState({
+    const [currentTab, setCurrentTab] = useState({
+        type: 'friend',
         conversationID: 'null',
         conversationName: null,
         conversationPicture: null,
     });
+
+    const [friendList, setFriendList] = useState([])
 
     const [isAuthorized, setIsAuthorized] = useState(true);
 
     const chatMessage = useRef(null);
 
     const sendMessage = () => {
-        if (message !== '' && currentConversationInfo.conversationID !== null) {
-
-            // socket.emit('join', currentConversationInfo.conversationID, user);
+        if (message !== '' && currentTab.conversationID !== null) {
 
             socket.emit('send_message', {
-                room: currentConversationInfo.conversationID,
+                room: currentTab.conversationID,
                 id: socketID,
                 user: user,
                 message: message,
@@ -133,13 +134,39 @@ export const InfoProvider = ({ children }) => {
         }
     };
 
-    const handleRoomClick = async (conversation, conversationPicture, conversationName) => {
-        if (isAuthorized) {
-            setCurrentConversationInfo((prevCurrentConversationInfo) => ({ ...prevCurrentConversationInfo, conversationID: conversation.room, conversationName: conversationName, conversationPicture: conversationPicture }));
-            if (!conversationMessages[conversation.room]) {
-                await fetchRoomMessages(conversation.room);
+    const fetchFriendList = async () => {
+        try {
+            const response = await fetch(`http://localhost:8000/api/user/friendlist`, {
+                method: 'GET',
+                credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
+            if (response.ok) {
+                const data = await response.json();
+                setFriendList(data);
             }
-            conversation.users.forEach((userId) => {
+            else if (response.status === 401) {
+                setIsAuthorized(false);
+                console.log('Access Denied: You are not authorized to access this resource.');
+            } else {
+                console.log(`Failed to fetch rooms for user`);
+            }
+        } catch (error) {
+            console.error(`Error fetching user's room: ${error}`);
+        }
+    };
+
+    const handleRoomClick = async (tab, conversationPicture, conversationName) => {
+        if (isAuthorized && tab.type === 'friend') {
+            setCurrentTab((prevCurrentTab) => ({ ...prevCurrentTab, type: 'friend', conversationID: null, conversationName: null, conversationPicture: null }));
+        } else if (isAuthorized) {
+            setCurrentTab((prevCurrentTab) => ({ ...prevCurrentTab, type: 'conversations', conversationID: tab.room, conversationName: conversationName, conversationPicture: conversationPicture }));
+            if (!conversationMessages[tab.room]) {
+                await fetchRoomMessages(tab.room);
+            }
+            tab.users.forEach((userId) => {
                 setProfilePictures((prevProfilePictures) => ({ ...prevProfilePictures, [userId.username]: userId.picture }));
             });
         }
@@ -174,12 +201,12 @@ export const InfoProvider = ({ children }) => {
     useEffect(() => {
         if (user) {
             fetchRoom();
+            fetchFriendList();
         };
     }, []);
 
     useEffect(() => {
         if (fetchedConversations.length > 0 && socket) {
-            console.log(fetchedConversations)
             fetchedConversations.forEach((conversations) => {
                 socket.emit('join', conversations.room, user);
             });
@@ -197,15 +224,17 @@ export const InfoProvider = ({ children }) => {
             profilePictures,
             conversationMessages,
             setConversationMessages,
-            currentConversationInfo,
-            setCurrentConversationInfo,
+            currentTab,
+            setCurrentTab,
             chatMessage,
             isAuthorized,
             setIsAuthorized,
             sendMessage,
             fetchRoomMessages,
             fetchRoom,
-            handleRoomClick
+            handleRoomClick,
+            friendList,
+            setFriendList
         }}>
             {children}
         </InfoContext.Provider>

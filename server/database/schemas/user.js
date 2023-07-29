@@ -9,6 +9,14 @@ const UserSchema = new mongoose.Schema({
     timestamp: {
         type: Date,
         default: Date.now
+    },
+    friendList: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'FriendList'
+    },
+    conversationList: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'ConversationList'
     }
 });
 

@@ -1,8 +1,8 @@
 import useAuth from "../../hooks/useAuth"
 
-export const GroupLayout = ({ conversation, currentConversationInfo, handleRoomClick }) => {
+export const GroupLayout = ({ conversation, currentTab, handleRoomClick }) => {
     return (
-        <div className={`room ${currentConversationInfo.conversationID === conversation.room ? 'current-room' : ''}`} key={conversation.name} onClick={() => { handleRoomClick(conversation, conversation.picture, conversation.name) }}>
+        <div className={`room ${currentTab.conversationID === conversation.room ? 'current-room' : ''}`} key={conversation.name} onClick={() => { handleRoomClick(conversation, conversation.picture, conversation.name) }}>
             <div className='conversation-picture-container'>
                 <img className='conversation-picture' src={conversation.picture} alt="room-picture" />
             </div>
@@ -14,13 +14,13 @@ export const GroupLayout = ({ conversation, currentConversationInfo, handleRoomC
     )
 }
 
-export const DmLayout = ({ conversation, currentConversationInfo, handleRoomClick }) => {
+export const DmLayout = ({ conversation, currentTab, handleRoomClick }) => {
 
     const { user } = useAuth();
     const otherUser = conversation.users.find(e => e.username !== user);
 
     return (
-        <div className={`room ${currentConversationInfo.conversationID === conversation.room ? 'current-room' : ''}`} key={conversation.name} onClick={() => { handleRoomClick(conversation, otherUser.picture, otherUser.username) }}>
+        <div className={`room ${currentTab.conversationID === conversation.room ? 'current-room' : ''}`} key={conversation.name} onClick={() => { handleRoomClick(conversation, otherUser.picture, otherUser.username) }}>
             <div className='conversation-picture-container'>
                 <img className='conversation-picture' src={otherUser.picture} alt="room-picture" />
             </div>
