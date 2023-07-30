@@ -26,7 +26,7 @@ function Nav() {
             </div>
             <div className='rooms'>
                 {fetchedConversations.map((conversation, index) => (
-                    conversation.isGroupChat === true
+                    conversation.type === "group"
                         ? <GroupLayout key={`Conversation${index}`} conversation={conversation} currentTab={currentTab} handleRoomClick={handleRoomClick} />
                         : <DmLayout key={`Conversation${index}`} conversation={conversation} currentTab={currentTab} handleRoomClick={handleRoomClick} />
                 ))}

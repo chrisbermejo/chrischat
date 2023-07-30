@@ -2,8 +2,8 @@ require('dotenv').config()
 
 const { Server } = require('socket.io');
 const { instrument } = require('@socket.io/admin-ui');
-const Message = require('../database/schemas/message');
-const Conversation = require('../database/schemas/conversations');
+
+const pool = require('../database/PostgreSQL');
 
 const verifyToken = require('../verifyToken');
 
@@ -72,24 +72,22 @@ module.exports = function setupWebSocket(server) {
 
         socket.on('send_message', async (data) => {
 
+            const newData = data;
 
-            const messageObj = {
-                room: data.room,
-                id: socket.id,
-                user: data.user,
-                message: data.message,
-                date: data.date,
-                time: data.time
-            };
+            const insertMessageQuery = `
+                INSERT INTO messages (chatid, username, message, date, time)
+                VALUES ($1, $2, $3, NOW(), NOW())
+                RETURNING date, time
+            `;
+            const results = await pool.query(
+                insertMessageQuery,
+                [data.chatid, data.username, data.message]
+            );
 
-            const newMessages = new Message(messageObj);
-            await newMessages.save();
+            newData.date = results.rows[0].date;
+            newData.time = results.rows[0].time;
 
-            const room = await Conversation.findOne({ room: data.room });
-            room.mostRecentMessageDate = data.date;
-            await room.save();
-
-            channel.to(data.room).emit('receive_message', messageObj);
+            channel.to(data.chatid).emit('receive_message', newData);
         });
 
         socket.on('disconnect', () => {

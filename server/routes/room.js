@@ -6,6 +6,8 @@ const Message = require('../database/schemas/message');
 const Conversation = require('../database/schemas/conversations');
 const FriendList = require('../database/schemas/friendList');
 
+const pool = require('../database/PostgreSQL');
+
 const jwt = require('jsonwebtoken');
 const { v4: uuidv4 } = require('uuid');
 
@@ -21,19 +23,25 @@ const verifyAccessToken = async (req, res, next) => {
     try {
         if (accesstoken) { // Verify the access token and proceed with the request if valid
             const decoded = jwt.verify(accesstoken, process.env.ACCESS_TOKEN_SECRET);
-            const user = await User.findOne({ username: decoded.username, picture: decoded.picture });
-            req.user = user;
-            // console.log(req.user)
+            const selectUserQuery = `
+                SELECT username, picture FROM users
+                WHERE username = $1
+                LIMIT 1
+            `;
+            const result = await pool.query(selectUserQuery, [decoded.username]);
+            req.user = result.rows[0];
             return next();
         } else {
             // If the access token is not present, attempt to refresh it using the refresh token
             const decodedRefreshToken = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
             // Check if the refresh token corresponds to a valid user
-            const user = await User.findById(decodedRefreshToken.userId);
-            if (!user) {
-                // If the user associated with the refresh token is not found, the user is not authenticated.
-                return res.status(401).send({ message: 'Access Denied' });
-            }
+            const selectUserQuery = `
+                SELECT username, picture FROM users
+                WHERE userid = $1
+                LIMIT 1
+            `;
+            const result = await pool.query(selectUserQuery, [decodedRefreshToken.userid]);
+            const user = result.rows[0];
             // Generate a new access token
             const newAccessToken = jwt.sign({ isLoggedIn: true, username: user.username, picture: user.picture }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '15m' });
             // Set the new access token as an HttpOnly cookie
@@ -58,13 +66,52 @@ router.get('/api/user', verifyAccessToken, async (req, res) => {
 });
 
 router.get('/api/room/:roomID/messages', verifyAccessToken, async (req, res) => {
-    const roomID = req.params.roomID;
-    const messages = await Message.find({ room: roomID }).select('-_id');
-    res.json(messages);
+    const conversationID = req.params.roomID;
+
+    const selectMessageQuery = `
+        SELECT chatid, username, message, date, time FROM messages
+        WHERE chatid = $1
+    `;
+    const result = await pool.query(selectMessageQuery, [conversationID]);
+    const conversationMessages = result.rows;
+
+    res.json(conversationMessages);
 });
 
 router.get('/api/user/rooms', verifyAccessToken, async (req, res) => {
-    const conversations = await Conversation.find({ users: req.user._id }).populate('users', 'username picture');
+    const selectChatQuery = `
+        SELECT DISTINCT
+            c.chatid,
+            c.type,
+            CASE
+                WHEN c.type = 'group' THEN c.group_name
+                WHEN c.type = 'private' THEN
+                    CASE
+                        WHEN u.username = $1 THEN u2.username
+                        ELSE u.username
+                    END
+                ELSE NULL -- Handle other types if needed
+            END AS chat_name,
+            CASE
+                WHEN c.type = 'group' THEN c.group_picture
+                WHEN c.type = 'private' THEN
+                    CASE
+                        WHEN u.username = $1 THEN u2.picture
+                        ELSE u.picture
+                    END
+                ELSE NULL -- Handle other types if needed
+            END AS chat_picture,
+            c.participants_count,
+            c.recentmessagedate
+        FROM chats AS c
+        JOIN userchatrelationship AS ucr ON c.chatid = ucr.chatid
+        JOIN users AS u ON ucr.userid = u.userid
+        LEFT JOIN userchatrelationship AS ucr2 ON c.chatid = ucr2.chatid AND ucr.userid != ucr2.userid
+        LEFT JOIN users AS u2 ON ucr2.userid = u2.userid
+        WHERE u.username = $1;
+    `;
+    const result = await pool.query(selectChatQuery, [req.user.username]);
+    const conversations = result.rows;
     res.json(conversations);
 });
 
@@ -75,27 +122,41 @@ router.get('/api/user/:userID/profilePicture', verifyAccessToken, async (req, re
 });
 
 router.post('/createConversation', verifyAccessToken, async (req, res) => {
-    const { name, user } = req.body;
-    const userID = [req.user._id];
+    const { name, users } = req.body;
 
     try {
-        for (const e of user) {
-            const id = await User.findOne({ username: e });
-            if (id) {
-                userID.push(id._id);
-            }
+
+        const chatid = uuidv4();
+
+        //GROUP QUERY
+        const insertUserQuery = `
+            INSERT INTO chats ( chatid, type, group_name, group_picture, participants_count, recentmessagedate)
+            VALUES ($1, $2, $3, $4, $5, NOW())
+        `;
+        await pool.query(
+            insertUserQuery,
+            [chatid, 'group', name, 'https://images-ext-1.discordapp.net/external/PNLH64xfgvwICQgUWi9Ugld5IIcTgs5fURgaeVjx0g4/https/pbs.twimg.com/media/F15M-yMXoAIcTFz.jpg?width=893&height=583', user.length]
+        );
+
+        //PRIVATE QUERY
+        // const insertUserQuery = `
+        //     INSERT INTO chats ( chatid, type, participants_count, recentmessagedate)
+        //     VALUES ($1, $2, $3, NOW())
+        // `;
+        // await pool.query(
+        //     insertUserQuery,
+        //     [chatid, 'private', users.length]
+        // );
+
+        for (const e of users) {
+            const selectUserID = ` SELECT userid FROM users WHERE username = $1;`;
+            const resultUserID = await pool.query(selectUserID, [e]);
+            const insertUserChatQuery = `
+                INSERT INTO userchatrelationship ( userid, chatid)
+                VALUES ($1, $2)
+            `;
+            await pool.query(insertUserChatQuery, [resultUserID.rows[0].userid, chatid]);
         }
-
-        const newConversation = new Conversation({
-            isGroupChat: true,
-            room: uuidv4(),
-            name: name,
-            users: userID,
-            users_count: userID.length,
-            picture: 'https://images-ext-1.discordapp.net/external/PNLH64xfgvwICQgUWi9Ugld5IIcTgs5fURgaeVjx0g4/https/pbs.twimg.com/media/F15M-yMXoAIcTFz.jpg?width=893&height=583',
-        });
-
-        await newConversation.save();
 
         res.status(201).send({ message: 'Conversation created successfully' });
     } catch (error) {
@@ -105,46 +166,32 @@ router.post('/createConversation', verifyAccessToken, async (req, res) => {
 });
 
 router.post('/addFriend/:username', verifyAccessToken, async (req, res) => {
-    const username = req.params.username;
+
+    const sender = req.user.username;
+    const receiver = req.params.username;
 
     try {
-        const user = await User.findOne({ username: username });
-        if (!user) {
-            return res.status(404).send({ error: 'User not found' });
+
+        const selectRelationshipQuery = `
+            SELECT sender_id, receiver_id, status FROM useruserrelationship
+            WHERE sender_id = $1 AND receiver_id = $2 OR sender_id = $2 AND receiver_id = $1
+            LIMIT 1
+        `;
+        const result = await pool.query(selectRelationshipQuery, [sender, receiver]);
+        if (result.rows > 0 && result.rows[0].status === 'friends') {
+            res.status(401).send({ message: 'Already friends with the user' });
+        } else if (result.rows > 0 && result.rows[0].status === 'pending') {
+            res.status(401).send({ message: 'Friend Request already sent' });
+        } else {
+            const insertRelationshipQuery = `
+                INSERT INTO useruserrelationship (sender_id, receiver_id, status)
+                VALUES ($1, $2, $3)
+                RETURNING id 
+            `;
+            await pool.query(insertRelationshipQuery, [sender, receiver, 'pending']);
+
+            res.status(200).send({ message: 'Friend request sent successfully' });
         }
-
-        // Find the friend list of the current user
-        const friendList = await FriendList.findOne({ user: req.user._id });
-
-        // Check if the user is already a friend in the friend list
-        const isFriend = friendList.friends.some((friend) => friend.user.equals(user._id));
-
-        if (isFriend) {
-            return res.status(400).send({ error: 'User is already a friend' });
-        }
-
-        const otherFriendList = await FriendList.findOne({ user: user._id });
-
-        // Add the new friend to the friend list
-
-        const list = {
-            type: 'Outgoing',
-            user: user._id,
-            status: 'pending',
-            sender: req.user._id,
-            receiver: user._id,
-        }
-
-        friendList.friends.push(list);
-        await friendList.save();
-
-        list.user = req.user._id;
-        list.type = 'Incoming';
-        otherFriendList.friends.push(list);
-
-        await otherFriendList.save();
-
-        res.status(200).send({ message: 'Friend request sent successfully' });
     } catch (error) {
         console.error('Error adding friend:', error);
         res.status(500).send({ error: 'An error occurred while adding the friend' });
@@ -159,7 +206,6 @@ router.get('/api/user/friendlist', verifyAccessToken, async (req, res) => {
 router.delete('/api/deleteRequest', verifyAccessToken, async (req, res) => {
     const body = req.body
 
-    console.log(body);
 
     let senderFriendList = null;
     let receiverFriendList = null;
@@ -172,10 +218,6 @@ router.delete('/api/deleteRequest', verifyAccessToken, async (req, res) => {
             senderFriendList = await FriendList.findOne({ user: body.sender });
             receiverFriendList = await FriendList.findOne({ user: req.user._id });
         }
-
-        console.log(senderFriendList)
-        console.log(receiverFriendList)
-
 
         res.status(200).send({ message: 'Declining friend request successfully' });
     } catch (error) {

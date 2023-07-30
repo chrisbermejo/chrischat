@@ -16,18 +16,18 @@ function Chat() {
         }
     }, [conversationMessages, currentTab.conversationID]);
 
-    if (currentTab.type === 'conversations') {
+    if (currentTab.type === 'chat') {
         return (
             <div className='chatroom-chat-container'>
                 <div className='chatroom-chat'>
                     {(conversationMessages[currentTab.conversationID] || []).map((message, index) => (
-                        <div key={index} ref={index === conversationMessages[currentTab.conversationID].length - 1 ? chatMessage : null} className={message.user === user ? 'chatroom-message-container client-con' : 'chatroom-message-container other-con'}>
-                            <div className={message.user === user ? 'chatroom-message client' : 'chatroom-message other'}>
-                                <div className='chatroom-message-username'>-{message.user}</div>
+                        <div key={index} ref={index === conversationMessages[currentTab.conversationID].length - 1 ? chatMessage : null} className={message.username === user ? 'chatroom-message-container client-con' : 'chatroom-message-container other-con'}>
+                            <div className={message.username === user ? 'chatroom-message client' : 'chatroom-message other'}>
+                                <div className='chatroom-message-username'>-{message.username}</div>
                                 <div className='chatroom-message-text'>{message.message}</div>
                                 <div className='chatroom-message-time'>{message.time}</div>
                             </div>
-                            <img src={message.user === user ? userProfilePicture : profilePictures[message.user] || DEFAULT_PICTURE} className='chatroom-message-avatar' alt='avatar' />
+                            <img src={message.username === user ? userProfilePicture : profilePictures[message.username] || DEFAULT_PICTURE} className='chatroom-message-avatar' alt='avatar' />
                         </div>
                     ))}
                 </div>
