@@ -128,6 +128,7 @@ router.post('/addFriend/:username', verifyAccessToken, async (req, res) => {
         // Add the new friend to the friend list
 
         const list = {
+            type: 'Outgoing',
             user: user._id,
             status: 'pending',
             sender: req.user._id,
@@ -135,11 +136,10 @@ router.post('/addFriend/:username', verifyAccessToken, async (req, res) => {
         }
 
         friendList.friends.push(list);
-
-        // Save the updated friend list
         await friendList.save();
 
         list.user = req.user._id;
+        list.type = 'Incoming';
         otherFriendList.friends.push(list);
 
         await otherFriendList.save();
@@ -154,6 +154,34 @@ router.post('/addFriend/:username', verifyAccessToken, async (req, res) => {
 router.get('/api/user/friendlist', verifyAccessToken, async (req, res) => {
     const friendList = await FriendList.findOne({ user: req.user._id }).populate('friends.user', 'username picture').populate('friends.sender', 'username');
     res.json(friendList.friends);
+});
+
+router.delete('/api/deleteRequest', verifyAccessToken, async (req, res) => {
+    const body = req.body
+
+    console.log(body);
+
+    let senderFriendList = null;
+    let receiverFriendList = null;
+
+    try {
+        if (body.type === 'Outgoing') {
+            senderFriendList = await FriendList.findOne({ user: req.user._id });
+            receiverFriendList = await FriendList.findOne({ user: body.receiver });
+        } else if (body.type === 'Incoming') {
+            senderFriendList = await FriendList.findOne({ user: body.sender });
+            receiverFriendList = await FriendList.findOne({ user: req.user._id });
+        }
+
+        console.log(senderFriendList)
+        console.log(receiverFriendList)
+
+
+        res.status(200).send({ message: 'Declining friend request successfully' });
+    } catch (error) {
+        console.error('Error declining friend request:', error);
+        res.status(500).send({ error: 'An error occurred while declining friend request' });
+    }
 });
 
 module.exports = router;
