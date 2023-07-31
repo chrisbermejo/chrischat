@@ -526,6 +526,18 @@ body,
     padding: 0 .8rem;
 }
 
+.add-friend-input-container {
+    border: 1px solid black;
+}
+
+.add-friend-input-container-active {
+    border: 1px solid rgb(0, 110, 255);
+}
+
+.add-friend-input-container-error {
+    border: 1px solid rgb(255, 101, 101);
+}
+
 .add-friend-input-wrapper,
 .friend-list-search-bar-wrapper {
     display: flex;
@@ -569,6 +581,11 @@ body,
     white-space: nowrap;
     text-overflow: ellipsis;
     overflow: hidden;
+    opacity: .8;
+}
+
+.add-friend-button:hover {
+    opacity: 1;
 }
 
 .friend-nav {
@@ -700,4 +717,9 @@ body,
     font-size: .6rem;
     font-weight: 800;
     color: rgb(156, 156, 156);
+}
+
+.add-friend-error-message {
+    color: rgb(255, 101, 101);
+    font-size: .9rem;
 }

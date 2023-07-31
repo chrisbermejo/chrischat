@@ -15,7 +15,7 @@ function InputBar() {
         }
     };
 
-    return currentTab.type === 'conversations' ? (
+    return currentTab.type === 'chat' ? (
         <div className='chatroom-inputs-container'>
             <textarea
                 rows={1}

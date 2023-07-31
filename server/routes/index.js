@@ -1,48 +1,31 @@
 const express = require('express');
 const router = express.Router();
+
+const pool = require('../database/PostgreSQL');
 const { v4: uuidv4 } = require('uuid');
 
 require('dotenv').config();
-
-const User = require('../database/schemas/user');
-const FriendList = require('../database/schemas/friendList');
-const ConversationList = require('../database/schemas/conversationsList');
 
 const jwt = require('jsonwebtoken');
 
 router.post('/register', async (req, res) => {
     const { username, email, password } = req.body;
-
     const uuidID = uuidv4();
 
     try {
-        const user = new User({
-            id: uuidID,
-            username: username,
-            email: email,
-            password: password,
-            picture: 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png'
-        });
+        const insertUserQuery = `
+            INSERT INTO users ( userid, username, picture, email, password, createdAt)
+            VALUES ($1, $2, $3, $4, $5, NOW())
+            RETURNING id, userid, username, picture
+        `;
 
-        const conversationList = new ConversationList({
-            user: user._id,
-            conversations: []
-        });
-        await conversationList.save();
+        const values = [uuidID, username, 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png', email, password];
 
-        const friendList = new FriendList({
-            user: user._id,
-            friends: []
-        });
-        await friendList.save();
+        const result = await pool.query(insertUserQuery, values);
+        const user = result.rows[0];
 
-        user.conversationList = conversationList._id;
-        user.friendList = friendList._id;
-
-        await user.save();
-
-        const accessToken = jwt.sign({ isLoggedIn: true, id: uuidID, username: username, picture: 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png' }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '15m' });
-        const refreshToken = jwt.sign({ userId: user._id }, process.env.REFRESH_TOKEN_SECRET);
+        const accessToken = jwt.sign({ isLoggedIn: true, username: user.username, picture: user.picture }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '15m' });
+        const refreshToken = jwt.sign({ userid: user.userid }, process.env.REFRESH_TOKEN_SECRET);
 
         // Set the refresh token as an HttpOnly cookie
         res.cookie('refresh_token', refreshToken, {
@@ -58,39 +41,43 @@ router.post('/register', async (req, res) => {
             sameSite: 'lax',
             maxAge: 60 * 1000 * 15 // 15 minutes (example duration)
         });
-
-        res.status(201).send({ message: 'User created successfully', username: username, picture: 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png' });
+        res.status(201).send({ message: 'User created successfully', username: user.username, picture: user.picture });
     } catch (error) {
         res.status(400).send({ error, message: 'User not created' });
     }
 });
 
 router.post('/login', async (req, res) => {
-    const user = await User.findOne({ username: req.body.username, password: req.body.password });
-    if (!user) {
-        return res.status(400).send({ message: 'User not found' });
-    } else {
-        const accessToken = jwt.sign({ isLoggedIn: true, id: user.id, username: user.username, picture: user.picture }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '15m' });
-        const refreshToken = jwt.sign({ userId: user._id }, process.env.REFRESH_TOKEN_SECRET);
+    const { username, password } = req.body;
 
-        // Set the refresh token as an HttpOnly cookie
-        res.cookie('refresh_token', refreshToken, {
-            httpOnly: true,
-            path: '/',
-            sameSite: 'lax',
-            maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days (example duration)
-        });
+    const selectUserQuery = `
+        SELECT userid, username, picture FROM users
+        WHERE username = $1 AND password = $2
+        LIMIT 1
+    `;
+    const result = await pool.query(selectUserQuery, [username, password]);
+    const user = result.rows[0];
 
-        // Set the access token as an HttpOnly cookie
-        res.cookie('access_token', accessToken, {
-            httpOnly: true,
-            path: '/',
-            sameSite: 'lax',
-            maxAge: 60 * 1000 * 15 // 15 minutes (example duration)
-        });
+    const accessToken = jwt.sign({ isLoggedIn: true, username: user.username, picture: user.picture }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '15m' });
+    const refreshToken = jwt.sign({ userid: user.userid }, process.env.REFRESH_TOKEN_SECRET);
 
-        return res.status(200).send({ message: 'Login successful', username: user.username, picture: user.picture });
-    }
+    // Set the refresh token as an HttpOnly cookie
+    res.cookie('refresh_token', refreshToken, {
+        httpOnly: true,
+        path: '/',
+        sameSite: 'lax',
+        maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days (example duration)
+    });
+
+    // Set the access token as an HttpOnly cookie
+    res.cookie('access_token', accessToken, {
+        httpOnly: true,
+        path: '/',
+        sameSite: 'lax',
+        maxAge: 60 * 1000 * 15 // 15 minutes (example duration)
+    });
+
+    return res.status(200).send({ message: 'Login successful', username: user.username, picture: user.picture });
 });
 
 router.post('/logout', async (req, res) => {

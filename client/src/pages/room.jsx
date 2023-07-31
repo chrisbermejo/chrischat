@@ -1,13 +1,16 @@
 import React from 'react';
+import useAuth from '../hooks/useAuth';
 
 function Room() {
+
+    const { user } = useAuth();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
 
         const updatedFormData = {
             name: e.target.name.value,
-            user: ['joe', 'john', 'edwin']
+            users: [user, 'joe']
         };
 
         try {

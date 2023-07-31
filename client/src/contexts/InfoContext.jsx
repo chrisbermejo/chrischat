@@ -25,6 +25,8 @@ export const InfoProvider = ({ children }) => {
         conversationName: null,
         conversationPicture: null,
     });
+    //Boolean for real time message 
+    const [roomClicked, setRoomClicked] = useState({});
 
     const [friendList, setFriendList] = useState([])
 
@@ -36,26 +38,10 @@ export const InfoProvider = ({ children }) => {
         if (message !== '' && currentTab.conversationID !== null) {
 
             socket.emit('send_message', {
-                room: currentTab.conversationID,
-                id: socketID,
-                user: user,
+                chatid: currentTab.conversationID,
+                username: user,
                 message: message,
-                date: new Date().toLocaleString('en-US', {
-                    timeZone: 'America/New_York',
-                    year: 'numeric',
-                    month: 'numeric',
-                    day: 'numeric',
-                    hour12: true,
-                    hour: 'numeric',
-                    minute: '2-digit',
-                    second: '2-digit'
-                }),
-                time: new Date().toLocaleString('en-US', {
-                    timeZone: 'America/New_York',
-                    hour12: true,
-                    hour: 'numeric',
-                    minute: '2-digit'
-                }),
+                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
             });
 
         } else {
@@ -63,9 +49,9 @@ export const InfoProvider = ({ children }) => {
         }
     };
 
-    const fetchRoomMessages = async (roomID) => {
+    const fetchRoomMessages = async (chatid, date) => {
         try {
-            const response = await fetch(`http://localhost:8000/api/room/${roomID}/messages`, {
+            const response = await fetch((!date ? `http://localhost:8000/api/room/${chatid}/messages` : `http://localhost:8000/api/room/${chatid}/messages/?date=${date}`), {
                 method: 'GET',
                 credentials: 'include',
                 headers: {
@@ -74,12 +60,12 @@ export const InfoProvider = ({ children }) => {
             });
             if (response.ok) {
                 const data = await response.json();
-                setConversationMessages((prevConversationMessages) => ({ ...prevConversationMessages, [roomID]: data }));
+                setConversationMessages((prevConversationMessages) => ({ ...prevConversationMessages, [chatid]: [...data, ...(prevConversationMessages[chatid] || [])] }));
             } else if (response.status === 401) {
                 setIsAuthorized(false);
                 console.log('Access Denied: You are not authorized to access this resource.');
             } else {
-                console.log(`Failed to fetch room messages for room: ${roomID}`);
+                console.log(`Failed to fetch room messages for room: ${chatid}`);
             }
         } catch (error) {
             console.error('Error fetching room messages:', error);
@@ -121,7 +107,7 @@ export const InfoProvider = ({ children }) => {
             });
             if (response.ok) {
                 const data = await response.json();
-                data.sort((a, b) => new Date(b.mostRecentMessageDate) - new Date(a.mostRecentMessageDate));
+                data.sort((a, b) => new Date(b.recentmessagedate) - new Date(a.recentmessagedate));
                 setFetchedConversations(data);
             } else if (response.status === 401) {
                 setIsAuthorized(false);
@@ -158,17 +144,15 @@ export const InfoProvider = ({ children }) => {
         }
     };
 
-    const handleRoomClick = async (tab, conversationPicture, conversationName) => {
+    const handleRoomClick = async (tab) => {
         if (isAuthorized && tab.type === 'friend') {
             setCurrentTab((prevCurrentTab) => ({ ...prevCurrentTab, type: 'friend', conversationID: null, conversationName: null, conversationPicture: null }));
-        } else if (isAuthorized) {
-            setCurrentTab((prevCurrentTab) => ({ ...prevCurrentTab, type: 'conversations', conversationID: tab.room, conversationName: conversationName, conversationPicture: conversationPicture }));
-            if (!conversationMessages[tab.room]) {
-                await fetchRoomMessages(tab.room);
+        } else if (isAuthorized && tab.type === 'group' || tab.type === 'private') {
+            setCurrentTab((prevCurrentTab) => ({ ...prevCurrentTab, type: 'chat', conversationID: tab.chatid, conversationName: tab.chat_name, conversationPicture: tab.chat_picture }));
+            if (!conversationMessages[tab.chatid] || !(roomClicked[tab.chatid] || false)) {
+                await fetchRoomMessages(tab.chatid, conversationMessages[tab.chatid]?.[0]?.date);
+                setRoomClicked((prev) => ({ ...prev, [tab.chatid]: true, }));
             }
-            tab.users.forEach((userId) => {
-                setProfilePictures((prevProfilePictures) => ({ ...prevProfilePictures, [userId.username]: userId.picture }));
-            });
         }
     };
 
@@ -177,15 +161,15 @@ export const InfoProvider = ({ children }) => {
             socket.on('receive_message', (data) => {
                 setConversationMessages((prevConversationMessages) => ({
                     ...prevConversationMessages,
-                    [data.room]: [...(prevConversationMessages[data.room] || []), data],
+                    [data.chatid]: [...(prevConversationMessages[data.chatid] || []), data],
                 }));
 
                 setFetchedConversations((prevRooms) => {
-                    if (prevRooms.length > 0 && prevRooms[0].room === data.room) {
+                    if (prevRooms.length > 0 && prevRooms[0].chatid === data.chatid) {
                         return prevRooms;
                     }
-                    const updatedRooms = prevRooms.filter((r) => r.room !== data.room);
-                    const roomToUpdate = prevRooms.find((r) => r.room === data.room);
+                    const updatedRooms = prevRooms.filter((r) => r.chatid !== data.chatid);
+                    const roomToUpdate = prevRooms.find((r) => r.chatid === data.chatid);
                     return [roomToUpdate, ...updatedRooms];
                 });
             });
@@ -208,10 +192,18 @@ export const InfoProvider = ({ children }) => {
     useEffect(() => {
         if (fetchedConversations.length > 0 && socket) {
             fetchedConversations.forEach((conversations) => {
-                socket.emit('join', conversations.room, user);
+                socket.emit('join', conversations.chatid, user);
             });
         };
     }, [fetchedConversations]);
+
+    useEffect(() => {
+        console.log(conversationMessages)
+    }, [conversationMessages])
+
+    useEffect(() => {
+        console.log(friendList)
+    }, [friendList])
 
 
     return (
