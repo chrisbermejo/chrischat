@@ -3,14 +3,14 @@ function OutgoingFriendRequest({ friend, onDecline }) {
         <div className='friend-list-item-container'>
             <div className='friend-list-item'>
                 <div className='friend-list-user-info'>
-                    <img className='friend-list-item-avatar' src={friend.user.picture} alt='avatar' />
+                    <img className='friend-list-item-avatar' src={friend.receiver.picture} alt='avatar' />
                     <div className='friend-list-item-text'>
-                        <div className='friend-list-item-username'>{friend.user.username}</div>
+                        <div className='friend-list-item-username'>{friend.receiver.username}</div>
                         <div className="friend-list-item-type">Outgoing Friend Request</div>
                     </div>
                 </div>
                 <div className='friend-list-buttons'>
-                    <button className="friend-list-decline-button" onClick={(e) => onDecline(e, friend)}>
+                    <button className="friend-list-decline-button" onClick={(e) => onDecline(e, { receiver: friend.receiver.userid, sender: friend.sender.userid })}>
                         <span className="material-symbols-outlined friend-list-decline-button-icon">close</span>
                     </button>
                 </div>
@@ -24,9 +24,9 @@ function IncomingFriendRequest({ friend, onDecline }) {
         <div className='friend-list-item-container'>
             <div className='friend-list-item'>
                 <div className='friend-list-user-info'>
-                    <img className='friend-list-item-avatar' src={friend.user.picture} alt='avatar' />
+                    <img className='friend-list-item-avatar' src={friend.sender.picture} alt='avatar' />
                     <div className='friend-list-item-text'>
-                        <div className='friend-list-item-username'>{friend.user.username}</div>
+                        <div className='friend-list-item-username'>{friend.sender.username}</div>
                         <div className="friend-list-item-type">Incoming Friend Request</div>
                     </div>
                 </div>
@@ -34,7 +34,7 @@ function IncomingFriendRequest({ friend, onDecline }) {
                     <button className="friend-list-accept-button">
                         <span className="material-symbols-outlined friend-list-accept-button-icon">check</span>
                     </button>
-                    <button className="friend-list-decline-button" onClick={(e) => onDecline(e, friend)}>
+                    <button className="friend-list-decline-button" onClick={(e) => onDecline(e, { receiver: friend.receiver.userid, sender: friend.sender.userid })}>
                         <span className="material-symbols-outlined friend-list-decline-button-icon">close</span>
                     </button>
                 </div>
@@ -59,9 +59,9 @@ function Friend({ friend }) {
     )
 }
 
-function FriendRequestType({ friend, user }) {
+function FriendRequestType({ friend, user, setFriendList, friendList }) {
 
-    const handleDecline = async (e, friend) => {
+    const handleDecline = async (e, users) => {
         e.preventDefault();
         try {
             const response = await fetch(`http://localhost:8000/api/deleteRequest`, {
@@ -70,10 +70,11 @@ function FriendRequestType({ friend, user }) {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(friend),
+                body: JSON.stringify(users),
             });
             if (response.ok) {
-                console.log(`Deleted friend request`);
+                const updatedFriendList = friendList.filter((friend) => !(friend.receiver.userid === users.receiver && friend.sender.userid === users.sender));
+                setFriendList(updatedFriendList);
             } else {
                 console.log(`Failed to delete friend request`);
             }
@@ -82,12 +83,10 @@ function FriendRequestType({ friend, user }) {
         }
     };
 
-    console.log(friend)
-
-    if (friend.type === 'Incoming' && friend.status === 'pending') {
+    if (friend.receiver.username === user && friend.status === 'pending') {
         return <IncomingFriendRequest friend={friend} onDecline={handleDecline} />
     }
-    else if (friend.type === 'Outgoing' && friend.status === 'pending') {
+    else if (friend.sender.username === user && friend.status === 'pending') {
         return <OutgoingFriendRequest friend={friend} onDecline={handleDecline} />
     }
     else if (friend.status === 'accept') {

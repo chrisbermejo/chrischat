@@ -25,6 +25,8 @@ export const InfoProvider = ({ children }) => {
         conversationName: null,
         conversationPicture: null,
     });
+    //Boolean for real time message 
+    const [roomClicked, setRoomClicked] = useState({});
 
     const [friendList, setFriendList] = useState([])
 
@@ -38,7 +40,8 @@ export const InfoProvider = ({ children }) => {
             socket.emit('send_message', {
                 chatid: currentTab.conversationID,
                 username: user,
-                message: message
+                message: message,
+                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
             });
 
         } else {
@@ -46,9 +49,9 @@ export const InfoProvider = ({ children }) => {
         }
     };
 
-    const fetchRoomMessages = async (roomID) => {
+    const fetchRoomMessages = async (chatid, date) => {
         try {
-            const response = await fetch(`http://localhost:8000/api/room/${roomID}/messages`, {
+            const response = await fetch((!date ? `http://localhost:8000/api/room/${chatid}/messages` : `http://localhost:8000/api/room/${chatid}/messages/?date=${date}`), {
                 method: 'GET',
                 credentials: 'include',
                 headers: {
@@ -57,12 +60,12 @@ export const InfoProvider = ({ children }) => {
             });
             if (response.ok) {
                 const data = await response.json();
-                setConversationMessages((prevConversationMessages) => ({ ...prevConversationMessages, [roomID]: data }));
+                setConversationMessages((prevConversationMessages) => ({ ...prevConversationMessages, [chatid]: [...data, ...(prevConversationMessages[chatid] || [])] }));
             } else if (response.status === 401) {
                 setIsAuthorized(false);
                 console.log('Access Denied: You are not authorized to access this resource.');
             } else {
-                console.log(`Failed to fetch room messages for room: ${roomID}`);
+                console.log(`Failed to fetch room messages for room: ${chatid}`);
             }
         } catch (error) {
             console.error('Error fetching room messages:', error);
@@ -141,13 +144,14 @@ export const InfoProvider = ({ children }) => {
         }
     };
 
-    const handleRoomClick = async (tab, conversationPicture, conversationName) => {
+    const handleRoomClick = async (tab) => {
         if (isAuthorized && tab.type === 'friend') {
-            setCurrentTab((prevCurrentTab) => ({ ...prevCurrentTab, type: 'private', conversationID: null, conversationName: null, conversationPicture: null }));
+            setCurrentTab((prevCurrentTab) => ({ ...prevCurrentTab, type: 'friend', conversationID: null, conversationName: null, conversationPicture: null }));
         } else if (isAuthorized && tab.type === 'group' || tab.type === 'private') {
-            setCurrentTab((prevCurrentTab) => ({ ...prevCurrentTab, type: 'chat', conversationID: tab.chatid, conversationName: conversationName, conversationPicture: conversationPicture }));
-            if (!conversationMessages[tab.chatid]) {
-                await fetchRoomMessages(tab.chatid);
+            setCurrentTab((prevCurrentTab) => ({ ...prevCurrentTab, type: 'chat', conversationID: tab.chatid, conversationName: tab.chat_name, conversationPicture: tab.chat_picture }));
+            if (!conversationMessages[tab.chatid] || !(roomClicked[tab.chatid] || false)) {
+                await fetchRoomMessages(tab.chatid, conversationMessages[tab.chatid]?.[0]?.date);
+                setRoomClicked((prev) => ({ ...prev, [tab.chatid]: true, }));
             }
         }
     };
@@ -181,7 +185,7 @@ export const InfoProvider = ({ children }) => {
     useEffect(() => {
         if (user) {
             fetchRoom();
-            // fetchFriendList();
+            fetchFriendList();
         };
     }, []);
 
@@ -192,6 +196,14 @@ export const InfoProvider = ({ children }) => {
             });
         };
     }, [fetchedConversations]);
+
+    useEffect(() => {
+        console.log(conversationMessages)
+    }, [conversationMessages])
+
+    useEffect(() => {
+        console.log(friendList)
+    }, [friendList])
 
 
     return (

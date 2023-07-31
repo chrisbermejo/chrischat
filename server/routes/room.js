@@ -40,6 +40,7 @@ const verifyAccessToken = async (req, res, next) => {
                 WHERE userid = $1
                 LIMIT 1
             `;
+            console.log(decodedRefreshToken)
             const result = await pool.query(selectUserQuery, [decodedRefreshToken.userid]);
             const user = result.rows[0];
             // Generate a new access token
@@ -67,13 +68,25 @@ router.get('/api/user', verifyAccessToken, async (req, res) => {
 
 router.get('/api/room/:roomID/messages', verifyAccessToken, async (req, res) => {
     const conversationID = req.params.roomID;
+    const date = req.query.date;
 
-    const selectMessageQuery = `
-        SELECT chatid, username, message, date, time FROM messages
-        WHERE chatid = $1
-    `;
-    const result = await pool.query(selectMessageQuery, [conversationID]);
-    const conversationMessages = result.rows;
+    let conversationMessages = null;
+
+    if (date) {
+        const selectMessageQuery = `
+            SELECT chatid, username, message, date, time FROM messages
+            WHERE chatid = $1 AND date < $2
+        `;
+        const result = await pool.query(selectMessageQuery, [conversationID, date]);
+        conversationMessages = result.rows;
+    } else {
+        const selectMessageQuery = `
+            SELECT chatid, username, message, date, time FROM messages
+            WHERE chatid = $1
+        `;
+        const result = await pool.query(selectMessageQuery, [conversationID]);
+        conversationMessages = result.rows;
+    }
 
     res.json(conversationMessages);
 });
@@ -165,16 +178,16 @@ router.post('/createConversation', verifyAccessToken, async (req, res) => {
     }
 });
 
-router.post('/addFriend/:username', verifyAccessToken, async (req, res) => {
+router.post('/api/addFriend/', verifyAccessToken, async (req, res) => {
 
     const sender = req.user.username;
-    const receiver = req.params.username;
+    const receiver = req.body.username;
 
     try {
 
         const selectRelationshipQuery = `
-            SELECT sender_id, receiver_id, status FROM useruserrelationship
-            WHERE sender_id = $1 AND receiver_id = $2 OR sender_id = $2 AND receiver_id = $1
+            SELECT sender, receiver, status FROM useruserrelationship
+            WHERE sender = $1 AND receiver = $2 OR sender = $2 AND receiver = $1
             LIMIT 1
         `;
         const result = await pool.query(selectRelationshipQuery, [sender, receiver]);
@@ -183,14 +196,40 @@ router.post('/addFriend/:username', verifyAccessToken, async (req, res) => {
         } else if (result.rows > 0 && result.rows[0].status === 'pending') {
             res.status(401).send({ message: 'Friend Request already sent' });
         } else {
-            const insertRelationshipQuery = `
-                INSERT INTO useruserrelationship (sender_id, receiver_id, status)
+
+            const selectSenderID = ` SELECT userid FROM users WHERE username = $1;`;
+            const resultSenderID = await pool.query(selectSenderID, [sender]);
+
+            const selectReceiverID = ` SELECT userid FROM users WHERE username = $1;`;
+            const resultReceiverID = await pool.query(selectReceiverID, [receiver]);
+
+            if (!(resultReceiverID.rows.length)) {
+                res.status(401).send({ message: 'User not found' });
+            } else {
+                const insertRelationshipQuery = `
+                INSERT INTO useruserrelationship (sender, receiver, status)
                 VALUES ($1, $2, $3)
                 RETURNING id 
             `;
-            await pool.query(insertRelationshipQuery, [sender, receiver, 'pending']);
 
-            res.status(200).send({ message: 'Friend request sent successfully' });
+                await pool.query(insertRelationshipQuery, [resultSenderID.rows[0].userid, resultReceiverID.rows[0].userid, 'pending']);
+
+                const sendingQuery = `
+                SELECT
+                    uur.status,
+                    json_build_object('userid', u.userid, 'username', u.username) AS sender,
+                    json_build_object('userid', ur.userid, 'username', ur.username, 'picture', ur.picture) AS receiver
+                FROM useruserrelationship uur
+                JOIN users u ON uur.sender = u.userid
+                JOIN users ur ON uur.receiver = ur.userid
+                WHERE uur.sender = $1 AND uur.receiver = $2
+                LIMIT 1
+            `
+
+                const sendingResult = await pool.query(sendingQuery, [resultSenderID.rows[0].userid, resultReceiverID.rows[0].userid]);
+
+                res.status(200).send({ request: sendingResult.rows[0], message: 'Friend request sent successfully' });
+            }
         }
     } catch (error) {
         console.error('Error adding friend:', error);
@@ -199,27 +238,43 @@ router.post('/addFriend/:username', verifyAccessToken, async (req, res) => {
 });
 
 router.get('/api/user/friendlist', verifyAccessToken, async (req, res) => {
-    const friendList = await FriendList.findOne({ user: req.user._id }).populate('friends.user', 'username picture').populate('friends.sender', 'username');
-    res.json(friendList.friends);
+    const query = `
+        SELECT
+        uur.status,
+        CASE
+            WHEN u.userid = uur.sender THEN
+            json_build_object('userid', u.userid, 'username', u.username)
+            ELSE
+            json_build_object('userid', us.userid, 'username', us.username, 'picture', us.picture)
+        END AS sender,
+        CASE
+            WHEN u.userid = uur.receiver THEN
+            json_build_object('userid', u.userid, 'username', u.username)
+            ELSE
+            json_build_object('userid', ur.userid, 'username', ur.username, 'picture', ur.picture)
+        END AS receiver
+        FROM users u
+        JOIN useruserrelationship uur ON u.userid = uur.sender OR u.userid = uur.receiver
+        LEFT JOIN users us ON uur.sender = us.userid
+        LEFT JOIN users ur ON uur.receiver = ur.userid
+        WHERE u.username = $1;
+    `
+    const result = await pool.query(query, [req.user.username]);
+    const friendList = result.rows;
+
+    res.json(friendList);
 });
 
 router.delete('/api/deleteRequest', verifyAccessToken, async (req, res) => {
-    const body = req.body
-
-
-    let senderFriendList = null;
-    let receiverFriendList = null;
-
     try {
-        if (body.type === 'Outgoing') {
-            senderFriendList = await FriendList.findOne({ user: req.user._id });
-            receiverFriendList = await FriendList.findOne({ user: body.receiver });
-        } else if (body.type === 'Incoming') {
-            senderFriendList = await FriendList.findOne({ user: body.sender });
-            receiverFriendList = await FriendList.findOne({ user: req.user._id });
-        }
+        const receiver = req.body.receiver;
+        const sender = req.body.sender;
+
+        const query = ` DELETE FROM useruserrelationship WHERE receiver = $1 AND sender = $2; `
+        await pool.query(query, [receiver, sender]);
 
         res.status(200).send({ message: 'Declining friend request successfully' });
+
     } catch (error) {
         console.error('Error declining friend request:', error);
         res.status(500).send({ error: 'An error occurred while declining friend request' });

@@ -44,8 +44,6 @@ module.exports = function setupWebSocket(server) {
 
                 console.log(`User ${decoded.username} connected. ID ${socket.id}`);
 
-                socket.emit('authenticated', { message: 'Authenticated successfully' });
-
             } catch (error) {
                 console.log('Token validation error:', error.message);
                 socket.emit('unauthorized', { error: 'Invalid or expired token' });
@@ -75,18 +73,19 @@ module.exports = function setupWebSocket(server) {
             const newData = data;
 
             const insertMessageQuery = `
-                INSERT INTO messages (chatid, username, message, date, time)
-                VALUES ($1, $2, $3, NOW(), NOW())
+                INSERT INTO messages (chatid, username, message, time, date)
+                VALUES ($1, $2, $3, $4, NOW())
                 RETURNING date, time
             `;
             const results = await pool.query(
                 insertMessageQuery,
-                [data.chatid, data.username, data.message]
+                [data.chatid, data.username, data.message, data.time]
             );
 
             newData.date = results.rows[0].date;
-            newData.time = results.rows[0].time;
+            newData.from = 'socket'
 
+            console.log("emitted");
             channel.to(data.chatid).emit('receive_message', newData);
         });
 

@@ -25,7 +25,7 @@ router.post('/register', async (req, res) => {
         const user = result.rows[0];
 
         const accessToken = jwt.sign({ isLoggedIn: true, username: user.username, picture: user.picture }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '15m' });
-        const refreshToken = jwt.sign({ userID: user.userid }, process.env.REFRESH_TOKEN_SECRET);
+        const refreshToken = jwt.sign({ userid: user.userid }, process.env.REFRESH_TOKEN_SECRET);
 
         // Set the refresh token as an HttpOnly cookie
         res.cookie('refresh_token', refreshToken, {
@@ -59,7 +59,7 @@ router.post('/login', async (req, res) => {
     const user = result.rows[0];
 
     const accessToken = jwt.sign({ isLoggedIn: true, username: user.username, picture: user.picture }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '15m' });
-    const refreshToken = jwt.sign({ userID: user.userid }, process.env.REFRESH_TOKEN_SECRET);
+    const refreshToken = jwt.sign({ userid: user.userid }, process.env.REFRESH_TOKEN_SECRET);
 
     // Set the refresh token as an HttpOnly cookie
     res.cookie('refresh_token', refreshToken, {

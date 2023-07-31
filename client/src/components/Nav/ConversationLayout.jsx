@@ -1,6 +1,6 @@
 export const GroupLayout = ({ conversation, currentTab, handleRoomClick }) => {
     return (
-        <div className={`room ${currentTab.conversationID === conversation.chatid ? 'current-room' : ''}`} key={conversation.group_name} onClick={() => { handleRoomClick(conversation, conversation.chat_picture, conversation.chat_name) }}>
+        <div className={`room ${currentTab.conversationID === conversation.chatid ? 'current-room' : ''}`} key={conversation.group_name} onClick={() => { handleRoomClick(conversation) }}>
             <div className='conversation-picture-container'>
                 <img className='conversation-picture' src={conversation.chat_picture} alt="room-picture" />
             </div>
@@ -14,7 +14,7 @@ export const GroupLayout = ({ conversation, currentTab, handleRoomClick }) => {
 
 export const DmLayout = ({ conversation, currentTab, handleRoomClick }) => {
     return (
-        <div className={`room ${currentTab.conversationID === conversation.chatid ? 'current-room' : ''}`} key={conversation.name} onClick={() => { handleRoomClick(conversation, conversation.chat_picture, conversation.chat_name) }}>
+        <div className={`room ${currentTab.conversationID === conversation.chatid ? 'current-room' : ''}`} key={conversation.name} onClick={() => { handleRoomClick(conversation) }}>
             <div className='conversation-picture-container'>
                 <img className='conversation-picture' src={conversation.chat_picture} alt="room-picture" />
             </div>

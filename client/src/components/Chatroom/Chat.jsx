@@ -8,7 +8,7 @@ function Chat() {
 
     const DEFAULT_PICTURE = 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png';
     const { user, userProfilePicture } = useAuth();
-    const { conversationMessages, currentTab, chatMessage, profilePictures, friendList } = useInfo();
+    const { conversationMessages, currentTab, chatMessage, profilePictures, friendList, setFriendList } = useInfo();
 
     useEffect(() => {
         if (chatMessage.current && currentTab.type !== 'conversations') {
@@ -47,7 +47,7 @@ function Chat() {
                 </div>
                 <h5 className='friend-list-selection-header'>ONLINE - {friendList.length}</h5>
                 {friendList.map((friend, index) => (
-                    <FriendRequestType key={index} friend={friend} user={user} />
+                    <FriendRequestType key={index} friend={friend} user={user} setFriendList={setFriendList} friendList={friendList} />
                 ))}
                 <div className='friend-list-footer'></div>
             </div>
