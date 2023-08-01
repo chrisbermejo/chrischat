@@ -22,6 +22,9 @@ function getAccessTokenFromCookies(cookies) {
 }
 
 module.exports = function setupWebSocket(server) {
+
+    const onlineUsers = {}
+
     const io = new Server(server, {
         cors: {
             origin: ['http://localhost:3000', 'https://admin.socket.io'],
@@ -39,11 +42,8 @@ module.exports = function setupWebSocket(server) {
 
         if (accessToken) {
             try {
-
                 const decoded = verifyToken(accessToken, process.env.ACCESS_TOKEN_SECRET)
-
                 console.log(`User ${decoded.username} connected. ID ${socket.id}`);
-
             } catch (error) {
                 console.log('Token validation error:', error.message);
                 socket.emit('unauthorized', { error: 'Invalid or expired token' });
@@ -57,10 +57,50 @@ module.exports = function setupWebSocket(server) {
             return;
         }
 
-        socket.on('join', (room, user) => {
+        socket.on('logged', (username) => {
+            if (onlineUsers[username]) {
+                onlineUsers[username].push(socket.id);
+            } else {
+                onlineUsers[username] = [socket.id];
+            }
+            // io.emit('userList', Object.keys(onlineUsers));
+            console.log(onlineUsers);
+        });
+
+        socket.on('sendFriendRequest', (array, data) => {
+            for (let j = 0; j < array.length; j++) {
+                const receiverSocketIds = onlineUsers[array[j]];
+                if (receiverSocketIds) {
+                    for (let i = 0; i < receiverSocketIds.length; i++) {
+                        const socketId = receiverSocketIds[i];
+                        channel.to(socketId).emit('receiveFriendRequest', data);
+                    }
+                }
+            }
+        });
+
+        socket.on('sendDelcineRequest', (user, data) => {
+            const receiverSocketIds = onlineUsers[user];
+            if (receiverSocketIds) {
+                for (let i = 0; i < receiverSocketIds.length; i++) {
+                    const socketId = receiverSocketIds[i];
+                    channel.to(socketId).emit('receiveDelcineRequest', data);
+                }
+            }
+        });
+
+        socket.on('sendAcceptRequest', (user, data, newChat) => {
+            const receiverSocketIds = onlineUsers[user];
+            if (receiverSocketIds) {
+                for (let i = 0; i < receiverSocketIds.length; i++) {
+                    const socketId = receiverSocketIds[i];
+                    channel.to(socketId).emit('receiveAcceptRequest', data, newChat);
+                }
+            }
+        });
+
+        socket.on('join', (room) => {
             socket.join(room);
-            // console.log(`User: ${user} Joined Room: ${room}`)
-            // console.log(socket.handshake.auth)
         });
 
         socket.on('leave', (room) => {
@@ -90,7 +130,21 @@ module.exports = function setupWebSocket(server) {
         });
 
         socket.on('disconnect', () => {
+            let disconnectedUsername = null;
+            for (const username in onlineUsers) {
+                const index = onlineUsers[username].indexOf(socket.id);
+                if (index !== -1) {
+                    disconnectedUsername = username;
+                    onlineUsers[username].splice(index, 1);
+                    if (onlineUsers[username].length === 0) {
+                        delete onlineUsers[username];
+                    }
+                    break;
+                }
+            }
             console.log(`User Disconnected: ${socket.id}`);
+            // io.emit('userList', Object.keys(onlineUsers));
+            console.log(onlineUsers);
         });
     });
 

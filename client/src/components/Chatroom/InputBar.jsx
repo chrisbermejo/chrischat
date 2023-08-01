@@ -1,6 +1,6 @@
 import useInfo from '../../hooks/useInfo'
 
-function InputBar() {
+function ChatRoomInputBar() {
 
     const { sendMessage, message, setMessage, currentTab } = useInfo();
 
@@ -15,7 +15,7 @@ function InputBar() {
         }
     };
 
-    return currentTab.type === 'chat' ? (
+    return (
         <div className='chatroom-inputs-container'>
             <textarea
                 rows={1}
@@ -27,7 +27,7 @@ function InputBar() {
                 onKeyPress={handleKeyPress}
             />
         </div>
-    ) : null
+    )
 }
 
-export default InputBar;
+export default ChatRoomInputBar;

@@ -1,11 +1,6 @@
 const express = require('express');
 const router = express.Router();
 
-const User = require('../database/schemas/user');
-const Message = require('../database/schemas/message');
-const Conversation = require('../database/schemas/conversations');
-const FriendList = require('../database/schemas/friendList');
-
 const pool = require('../database/PostgreSQL');
 
 const jwt = require('jsonwebtoken');
@@ -128,11 +123,11 @@ router.get('/api/user/rooms', verifyAccessToken, async (req, res) => {
     res.json(conversations);
 });
 
-router.get('/api/user/:userID/profilePicture', verifyAccessToken, async (req, res) => {
-    const userID = req.params.userID;
-    const user = await User.findOne({ _id: userID });
-    res.json(user.picture);
-});
+// router.get('/api/user/:userID/profilePicture', verifyAccessToken, async (req, res) => {
+//     const userID = req.params.userID;
+//     const user = await User.findOne({ _id: userID });
+//     res.json(user.picture);
+// });
 
 router.post('/createConversation', verifyAccessToken, async (req, res) => {
     const { name, users } = req.body;
@@ -185,23 +180,23 @@ router.post('/api/addFriend/', verifyAccessToken, async (req, res) => {
 
     try {
 
+        const selectSenderID = ` SELECT userid FROM users WHERE username = $1;`;
+        const resultSenderID = await pool.query(selectSenderID, [sender]);
+
+        const selectReceiverID = ` SELECT userid FROM users WHERE username = $1;`;
+        const resultReceiverID = await pool.query(selectReceiverID, [receiver]);
+
         const selectRelationshipQuery = `
             SELECT sender, receiver, status FROM useruserrelationship
             WHERE sender = $1 AND receiver = $2 OR sender = $2 AND receiver = $1
             LIMIT 1
         `;
-        const result = await pool.query(selectRelationshipQuery, [sender, receiver]);
-        if (result.rows > 0 && result.rows[0].status === 'friends') {
-            res.status(401).send({ message: 'Already friends with the user' });
-        } else if (result.rows > 0 && result.rows[0].status === 'pending') {
-            res.status(401).send({ message: 'Friend Request already sent' });
+        const result = await pool.query(selectRelationshipQuery, [resultSenderID.rows[0].userid, resultReceiverID.rows[0].userid]);
+        if (result.rows.length > 0 && result.rows[0].status === 'accepted') {
+            res.status(401).send({ message: 'Already friends with the user!' });
+        } else if (result.rows.length > 0 && result.rows[0].status === 'pending') {
+            res.status(401).send({ message: 'Friend Request already sent!' });
         } else {
-
-            const selectSenderID = ` SELECT userid FROM users WHERE username = $1;`;
-            const resultSenderID = await pool.query(selectSenderID, [sender]);
-
-            const selectReceiverID = ` SELECT userid FROM users WHERE username = $1;`;
-            const resultReceiverID = await pool.query(selectReceiverID, [receiver]);
 
             if (!(resultReceiverID.rows.length)) {
                 res.status(401).send({ message: 'User not found' });
@@ -217,7 +212,7 @@ router.post('/api/addFriend/', verifyAccessToken, async (req, res) => {
                 const sendingQuery = `
                 SELECT
                     uur.status,
-                    json_build_object('userid', u.userid, 'username', u.username) AS sender,
+                    json_build_object('userid', u.userid, 'username', u.username, 'picture', u.picture) AS sender,
                     json_build_object('userid', ur.userid, 'username', ur.username, 'picture', ur.picture) AS receiver
                 FROM useruserrelationship uur
                 JOIN users u ON uur.sender = u.userid
@@ -225,7 +220,6 @@ router.post('/api/addFriend/', verifyAccessToken, async (req, res) => {
                 WHERE uur.sender = $1 AND uur.receiver = $2
                 LIMIT 1
             `
-
                 const sendingResult = await pool.query(sendingQuery, [resultSenderID.rows[0].userid, resultReceiverID.rows[0].userid]);
 
                 res.status(200).send({ request: sendingResult.rows[0], message: 'Friend request sent successfully' });
@@ -278,6 +272,66 @@ router.delete('/api/deleteRequest', verifyAccessToken, async (req, res) => {
     } catch (error) {
         console.error('Error declining friend request:', error);
         res.status(500).send({ error: 'An error occurred while declining friend request' });
+    }
+});
+
+router.post('/api/acceptRequest', verifyAccessToken, async (req, res) => {
+    try {
+        
+        const receiver = req.body.receiver;
+        const sender = req.body.sender;
+
+        const query = `UPDATE useruserrelationship SET status = 'accepted' WHERE receiver = $1 AND sender = $2;`;
+        await pool.query(query, [receiver, sender]);
+
+        const chatid = uuidv4();
+
+        const insertUserQuery = `
+            INSERT INTO chats ( chatid, type, participants_count, recentmessagedate)
+            VALUES ($1, $2, $3, NOW())
+            RETURNING recentmessagedate;
+        `;
+
+        const insertResults = await pool.query(
+            insertUserQuery,
+            [chatid, 'private', 2]
+        );
+
+        const insertUserChatQuery = `
+            INSERT INTO userchatrelationship ( userid, chatid)
+            VALUES ($1, $2)
+        `;
+
+        await pool.query(insertUserChatQuery, [receiver, chatid]);
+        await pool.query(insertUserChatQuery, [sender, chatid]);
+
+        const userInfoQuery = ` SELECT username, picture FROM users WHERE userid = $1;`;
+        const resultSenderID = await pool.query(userInfoQuery, [sender]);
+        const resultReceiverID = await pool.query(userInfoQuery, [receiver]);
+
+        const forReceiver = {
+            chatid: chatid,
+            type : 'private',
+            chat_name: resultSenderID.rows[0].username,
+            chat_picture: resultSenderID.rows[0].picture,
+            participants_count: 2,
+            recentmessagedate: insertResults.rows[0].recentmessagedate,
+        }
+
+        const forSender =  {
+            chatid: chatid,
+            type: 'private',
+            chat_name: resultReceiverID.rows[0].username,
+            chat_picture: resultReceiverID.rows[0].picture,
+            participants_count: 2,
+            recentmessagedate: insertResults.rows[0].recentmessagedate,
+        }
+
+        res.status(200).send({ forReceiver: forReceiver, forSender: forSender, message: 'Accepting friend request successfully' });
+
+    } catch (error) {
+        console.error('Error accepting friend request:', error);
+        res.status(500).send({ error: 'An error occurred while accepting friend request' });
     }
 });
 

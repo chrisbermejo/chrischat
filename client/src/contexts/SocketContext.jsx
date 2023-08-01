@@ -7,7 +7,7 @@ export const SocketContext = createContext();
 
 export const SocketProvider = ({ children }) => {
 
-    const { isAuthenticated } = useAuth();
+    const { isAuthenticated, user } = useAuth();
     const [socket, setSocket] = useState(null);
     const [socketID, setSocketID] = useState(null);
 
@@ -19,6 +19,7 @@ export const SocketProvider = ({ children }) => {
                 setSocket(newSocket);
                 setSocketID(newSocket.id);
             });
+            newSocket.emit('logged', user);
             return () => {
                 newSocket.off('connect');
             };

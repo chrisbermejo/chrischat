@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import useInfo from '../../hooks/useInfo';
+import useSocket from '../../hooks/useSocket';
+import useAuth from '../../hooks/useAuth';
 
 function AddFriend() {
 
     const [input, setInput] = useState('');
     const [errorMessage, setErrorMessage] = useState('');
-    const { setFriendList } = useInfo();
+    const { user } = useAuth();
+    const { socket } = useSocket();
 
     const sendFriendRequest = async (username) => {
         try {
@@ -19,7 +22,7 @@ function AddFriend() {
             });
             if (response.ok) {
                 const data = await response.json();
-                setFriendList((prev) => [...prev, data.request]);
+                socket.emit('sendFriendRequest', [data.request.sender.username, data.request.receiver.username], data.request);
             } else if (response.status === 401) {
                 const data = await response.json();
                 setErrorMessage(data.message);
@@ -28,6 +31,15 @@ function AddFriend() {
             }
         } catch (error) {
             console.error(`Error fetching user's room: ${error}`);
+        }
+    };
+
+    const handleSendFriendRequest = (e) => {
+        e.preventDefault();
+        if (input.toLowerCase() !== user) {
+            sendFriendRequest(input.toLowerCase())
+        } else {
+            setErrorMessage('You cannot send a friend request to yourself');
         }
     };
 
@@ -50,7 +62,7 @@ function AddFriend() {
                         }}
                     />
                 </div>
-                <button className='add-friend-button' type='submit' onClick={(e) => { e.preventDefault(); sendFriendRequest(input) }}>
+                <button className='add-friend-button' type='submit' onClick={(e) => { handleSendFriendRequest(e) }}>
                     <span className='add-friend-button-text'>
                         Send Friend Request
                     </span>

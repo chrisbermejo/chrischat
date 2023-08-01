@@ -38,6 +38,8 @@ function Login() {
                     setSocket(socket);
                     setSocketID(socket.id);
                 });
+                console.log('logln', data.username)
+                socket.emit('logged', data.username);
                 navigate('/channel');
             } else {
                 console.log('failed');

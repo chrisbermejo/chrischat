@@ -1,9 +1,7 @@
 import { InfoProvider } from '../../contexts/InfoContext'
 
 import Nav from '../../components/Nav/Nav'
-import Chat from '../../components/Chatroom/Chat'
-import Header from '../../components/Chatroom/Header'
-import InputBar from '../../components/Chatroom/InputBar'
+import Body from '../../components/Body/Body'
 
 import '../../App.css';
 
@@ -12,11 +10,7 @@ export default function App() {
         <InfoProvider>
             <div className='App'>
                 <Nav />
-                <div className="chatroom">
-                    <Header />
-                    <Chat />
-                    <InputBar />
-                </div>
+                <Body />
             </div>
         </InfoProvider>
     );

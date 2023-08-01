@@ -21,7 +21,7 @@ export const InfoProvider = ({ children }) => {
     //Store information on the current room in
     const [currentTab, setCurrentTab] = useState({
         type: 'friend',
-        conversationID: 'null',
+        conversationID: null,
         conversationName: null,
         conversationPicture: null,
     });
@@ -173,11 +173,37 @@ export const InfoProvider = ({ children }) => {
                     return [roomToUpdate, ...updatedRooms];
                 });
             });
+
+            socket.on('receiveFriendRequest', (data) => {
+                setFriendList((prev) => [...prev, data]);
+            });
+
+            socket.on('receiveDelcineRequest', (data) => {
+                setFriendList((prevFriendList) => {
+                    return prevFriendList.filter(
+                        (friend) => !(friend.receiver.userid === data.receiver && friend.sender.userid === data.sender)
+                    );
+                });
+            });
+
+            socket.on('receiveAcceptRequest', (data, newChat) => {
+                setFriendList((prevFriendList) => {
+                    return prevFriendList.map((friend) => {
+                        if (friend.receiver.userid === data.receiver && friend.sender.userid === data.sender) {
+                            return { ...friend, status: 'accepted' };
+                        }
+                        return friend;
+                    });
+                });
+                setFetchedConversations((prev) => [newChat, ...prev]);
+            });
         }
 
         return () => {
             if (socket) {
                 socket.off('receive_message');
+                socket.off('receiveFriendRequest');
+                socket.off('receiveDelcineRequest');
             }
         };
     }, [socket]);
@@ -196,14 +222,6 @@ export const InfoProvider = ({ children }) => {
             });
         };
     }, [fetchedConversations]);
-
-    useEffect(() => {
-        console.log(conversationMessages)
-    }, [conversationMessages])
-
-    useEffect(() => {
-        console.log(friendList)
-    }, [friendList])
 
 
     return (
