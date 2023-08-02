@@ -54,7 +54,7 @@ function Friend({ friend }) {
     );
 };
 
-function FriendRequestType({ friend, user, setFriendList, socket, setFetchedConversations }) {
+function FriendRequestType({ friend, user, socket }) {
 
     const handleDecline = async (e, users) => {
         e.preventDefault();
@@ -68,14 +68,7 @@ function FriendRequestType({ friend, user, setFriendList, socket, setFetchedConv
                 body: JSON.stringify(users),
             });
             if (response.ok) {
-                setFriendList((prevFriendList) => {
-                    return prevFriendList.filter(
-                        (friend) => !(friend.receiver.userid === users.receiver && friend.sender.userid === users.sender)
-                    );
-                });
-                friend.receiver.username === user
-                    ? socket.emit('sendDelcineRequest', friend.sender.username, users)
-                    : socket.emit('sendDelcineRequest', friend.receiver.username, users);
+                socket.emit('sendDelcineRequest', [friend.receiver.username, friend.sender.username], users)
             } else {
                 console.log(`Failed to delete friend request`);
             }
@@ -97,16 +90,7 @@ function FriendRequestType({ friend, user, setFriendList, socket, setFetchedConv
             });
             if (response.ok) {
                 const data = await response.json();
-                setFetchedConversations((prev) => [data.forReceiver, ...prev]);
-                setFriendList((prevFriendList) => {
-                    return prevFriendList.map((friend) => {
-                        if (friend.receiver.userid === users.receiver && friend.sender.userid === users.sender) {
-                            return { ...friend, status: 'accepted' };
-                        }
-                        return friend;
-                    });
-                });
-                socket.emit('sendAcceptRequest', friend.sender.username, users, data.forSender)
+                socket.emit('sendAcceptRequest', [friend.receiver.username, friend.sender.username], users, [data.forReceiver, data.forSender])
             } else {
                 console.log(`Failed to accept friend request`);
             }

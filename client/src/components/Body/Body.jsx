@@ -12,7 +12,7 @@ function Body() {
 
     return (
         <div className="body">
-            {currentTab.type === 'friend' ? <FriendListHeader /> : <ChatRoomHeader currentTab={currentTab} />}
+            {currentTab.type === 'chat' ? <ChatRoomHeader currentTab={currentTab} /> : currentTab.type === 'friend' ? <FriendListHeader /> : null}
             {currentTab.type === 'chat' ? <ChatRoom /> : currentTab.type === 'friend' ? <FriendList /> : null}
             {currentTab.type === 'chat' ? <ChatRoomInputBar /> : null}
         </div>

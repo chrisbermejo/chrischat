@@ -1,12 +1,11 @@
 import React from 'react';
-import { createSocket } from '../../socket';
 import { useNavigate } from 'react-router-dom';
 import useSocket from '../../hooks/useSocket';
 import useAuth from '../../hooks/useAuth';
 
 function Login() {
 
-    const { setSocket, setSocketID } = useSocket();
+    const { setSocket } = useSocket();
     const { setUser, setUserProfilePicture, setIsAuthenticated } = useAuth();
 
     const navigate = useNavigate();
@@ -24,22 +23,18 @@ function Login() {
                 method: 'POST',
                 credentials: 'include',
                 headers: {
+                    'Cache-Control': 'no-cache',
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify(updatedFormData)
             });
             if (response.ok) {
+                setSocket(null);
                 const data = await response.json();
                 setUser(data.username);
                 setUserProfilePicture(data.picture);
                 setIsAuthenticated(true);
-                const socket = createSocket();
-                socket.on('connect', () => {
-                    setSocket(socket);
-                    setSocketID(socket.id);
-                });
-                console.log('logln', data.username)
-                socket.emit('logged', data.username);
+                console.log('logln', data.username);
                 navigate('/channel');
             } else {
                 console.log('failed');

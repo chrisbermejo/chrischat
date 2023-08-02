@@ -10,7 +10,7 @@ function Nav() {
     return (
         <div className='Nav'>
             <div className='finder-container'>
-                <button className='finder'>Find or start a conersation</button>
+                <a href='https://github.com/chrisbermejo' target="_blank" className='finder'>Created by Christopher B</a>
             </div>
             <div className='friend-container'>
                 <div className={`friend-button ${currentTab.type === 'friend' ? 'current-room' : ''}`} onClick={() => {

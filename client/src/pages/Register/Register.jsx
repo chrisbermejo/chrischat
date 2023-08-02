@@ -1,7 +1,12 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import useSocket from '../../hooks/useSocket';
+import useAuth from '../../hooks/useAuth';
 
-function App() {
+function Register() {
+
+    const { setSocket } = useSocket();
+    const { setUser, setUserProfilePicture, setIsAuthenticated } = useAuth();
 
     const navigate = useNavigate();
 
@@ -17,6 +22,7 @@ function App() {
         try {
             const response = await fetch('http://localhost:8000/register', {
                 method: 'POST',
+                credentials: 'include',
                 headers: {
                     'Cache-Control': 'no-cache',
                     'Content-Type': 'application/json'
@@ -25,6 +31,12 @@ function App() {
             });
 
             if (response.ok) {
+                setSocket(null);
+                const data = await response.json();
+                setUser(data.username);
+                setUserProfilePicture(data.picture);
+                setIsAuthenticated(true);
+                console.log('logln', data.username);
                 navigate('/channel');
             } else {
                 console.log('failed');
@@ -65,4 +77,4 @@ function App() {
     );
 }
 
-export default App;
+export default Register;

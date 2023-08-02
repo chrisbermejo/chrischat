@@ -29,6 +29,7 @@ body,
     display: flex;
     height: 100%;
     width: 100%;
+    overflow-x: hidden;
 }
 
 .Nav {
@@ -325,7 +326,7 @@ body,
 
 /* Chrome, Edge, and Safari */
 *::-webkit-scrollbar {
-    width: 6px;
+    width: .325rem;
 }
 
 *::-webkit-scrollbar-thumb {
@@ -378,6 +379,7 @@ body,
     padding: .5rem .5rem;
     align-items: baseline;
     cursor: default;
+    padding-right: .875rem;
 }
 
 .rooms-title-text {
@@ -448,6 +450,16 @@ body,
     color: rgba(255, 255, 255, 0.425);
     text-align: left;
     cursor: pointer;
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+}
+
+.finder:visited,
+.finder:active,
+{
+text-decoration: none;
+color: rgba(255, 255, 255, 0.425);
 }
 
 .user--avatar {
@@ -474,6 +486,10 @@ body,
     font-size: 1rem;
     line-height: 1;
     cursor: pointer;
+}
+
+.add-friend-tab-button-active {
+    opacity: .8;
 }
 
 .add-friend-tab-button-text,
@@ -563,6 +579,10 @@ body,
     height: 1rem;
 }
 
+.search-bar-icon {
+    cursor: pointer;
+}
+
 .friend-list-search-bar-container {
     border-radius: 4px;
 }
@@ -594,12 +614,18 @@ body,
     align-items: center;
     flex-direction: row;
     min-width: 0;
-    /* overflow: hidden; */
+    width: 100%;
+    justify-content: space-between;
+}
+
+.friend-nav-tabs {
+    display: flex;
 }
 
 .friend-nav-tab {
     margin: 0 .5rem;
     padding: 0.125rem .5rem;
+    cursor: pointer;
 }
 
 .friend-nav-tab:hover {
@@ -610,6 +636,9 @@ body,
 .tab-title {
     color: white;
     padding: 0.125rem .5rem;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
 }
 
 .friend-list-header {
@@ -622,7 +651,7 @@ body,
 .friend-nav-empty-space {
     display: flex;
     height: 100%;
-    width: 1em;
+    width: 1.4em;
     background: linear-gradient(to right, rgb(49 51 56 / 0%) 0%, rgb(49 51 56) 25%);
 }
 
@@ -644,6 +673,7 @@ body,
 
 .friend-list-item-container {
     overflow-y: scroll;
+    overflow-x: hidden;
 }
 
 .friend-list-item-container::-webkit-scrollbar-track {

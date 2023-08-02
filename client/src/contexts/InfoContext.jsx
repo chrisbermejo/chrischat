@@ -34,6 +34,15 @@ export const InfoProvider = ({ children }) => {
 
     const chatMessage = useRef(null);
 
+    const [addFriendVisible, setAddFriendVisible] = useState(false);
+
+    const handleFriendVisible = () => {
+        setAddFriendVisible(!addFriendVisible);
+    };
+
+    const [dialogVisible, setDialogVisible] = useState(false);
+
+
     const sendMessage = () => {
         if (message !== '' && currentTab.conversationID !== null) {
 
@@ -244,7 +253,9 @@ export const InfoProvider = ({ children }) => {
             fetchRoom,
             handleRoomClick,
             friendList,
-            setFriendList
+            setFriendList,
+            addFriendVisible,
+            handleFriendVisible
         }}>
             {children}
         </InfoContext.Provider>

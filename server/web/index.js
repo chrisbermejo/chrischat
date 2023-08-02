@@ -67,9 +67,9 @@ module.exports = function setupWebSocket(server) {
             console.log(onlineUsers);
         });
 
-        socket.on('sendFriendRequest', (array, data) => {
-            for (let j = 0; j < array.length; j++) {
-                const receiverSocketIds = onlineUsers[array[j]];
+        socket.on('sendFriendRequest', (users, data) => {
+            for (let j = 0; j < users.length; j++) {
+                const receiverSocketIds = onlineUsers[users[j]];
                 if (receiverSocketIds) {
                     for (let i = 0; i < receiverSocketIds.length; i++) {
                         const socketId = receiverSocketIds[i];
@@ -79,22 +79,26 @@ module.exports = function setupWebSocket(server) {
             }
         });
 
-        socket.on('sendDelcineRequest', (user, data) => {
-            const receiverSocketIds = onlineUsers[user];
-            if (receiverSocketIds) {
-                for (let i = 0; i < receiverSocketIds.length; i++) {
-                    const socketId = receiverSocketIds[i];
-                    channel.to(socketId).emit('receiveDelcineRequest', data);
+        socket.on('sendDelcineRequest', (users, data) => {
+            for (let j = 0; j < users.length; j++) {
+                const receiverSocketIds = onlineUsers[users[j]];
+                if (receiverSocketIds) {
+                    for (let i = 0; i < receiverSocketIds.length; i++) {
+                        const socketId = receiverSocketIds[i];
+                        channel.to(socketId).emit('receiveDelcineRequest', data);
+                    }
                 }
             }
         });
 
-        socket.on('sendAcceptRequest', (user, data, newChat) => {
-            const receiverSocketIds = onlineUsers[user];
-            if (receiverSocketIds) {
-                for (let i = 0; i < receiverSocketIds.length; i++) {
-                    const socketId = receiverSocketIds[i];
-                    channel.to(socketId).emit('receiveAcceptRequest', data, newChat);
+        socket.on('sendAcceptRequest', (users, data, requests) => {
+            for (let j = 0; j < users.length; j++) {
+                const receiverSocketIds = onlineUsers[users[j]];
+                if (receiverSocketIds) {
+                    for (let i = 0; i < receiverSocketIds.length; i++) {
+                        const socketId = receiverSocketIds[i];
+                        channel.to(socketId).emit('receiveAcceptRequest', data, requests[j]);
+                    }
                 }
             }
         });

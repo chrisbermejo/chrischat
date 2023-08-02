@@ -18,6 +18,7 @@ export const AuthProvider = ({ children }) => {
                 method: 'POST',
                 credentials: 'include',
                 headers: {
+                    'Cache-Control': 'no-cache',
                     'Content-Type': 'application/json'
                 },
             });

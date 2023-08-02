@@ -7,12 +7,12 @@ import FriendRequestType from '../Friend/FriendRequestType';
 function FriendList() {
 
     const { socket } = useSocket();
-    const { friendList, setFriendList, setFetchedConversations } = useInfo();
+    const { friendList, addFriendVisible } = useInfo();
     const { user } = useAuth();
 
     return (
         <div className='friend-tab'>
-            <AddFriend />
+            {addFriendVisible && <AddFriend />}
             <div className='friend-list-header'>
                 <div className='friend-list-search-bar-container'>
                     <div className='friend-list-search-bar-wrapper'>
@@ -24,7 +24,7 @@ function FriendList() {
             <h5 className='friend-list-selection-header'>ONLINE - {friendList.length}</h5>
             <div className='friend-list-item-container'>
                 {friendList.map((friend, index) => (
-                    <FriendRequestType key={index} friend={friend} user={user} setFriendList={setFriendList} friendList={friendList} socket={socket} setFetchedConversations={setFetchedConversations} />
+                    <FriendRequestType key={index} friend={friend} user={user} socket={socket} />
                 ))}
             </div>
             <div className='friend-list-footer'></div>

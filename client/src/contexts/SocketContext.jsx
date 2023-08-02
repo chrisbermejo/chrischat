@@ -12,10 +12,10 @@ export const SocketProvider = ({ children }) => {
     const [socketID, setSocketID] = useState(null);
 
     useEffect(() => {
-
-        if (isAuthenticated && !socket) {
+        if (isAuthenticated && !socket && user) {
             const newSocket = createSocket();
             newSocket.on('connect', () => {
+                console.log('Socket connected');
                 setSocket(newSocket);
                 setSocketID(newSocket.id);
             });
@@ -24,8 +24,7 @@ export const SocketProvider = ({ children }) => {
                 newSocket.off('connect');
             };
         }
-
-    }, [isAuthenticated, socket]);
+    }, [isAuthenticated, user, socket]);
 
     return (
         <SocketContext.Provider value={{ socket, setSocket, socketID, setSocketID }}>
