@@ -5,12 +5,12 @@ import { GroupLayout, DmLayout } from './ConversationLayout';
 function Nav() {
 
     const { user, userProfilePicture, logout } = useAuth();
-    const { fetchedConversations, currentTab, handleRoomClick } = useInfo();
+    const { fetchedConversations, currentTab, handleRoomClick, openDialog } = useInfo();
 
     return (
         <div className='Nav'>
             <div className='finder-container'>
-                <a href='https://github.com/chrisbermejo' target="_blank" className='finder'>Created by Christopher B</a>
+                <a href='https://github.com/chrisbermejo' target="_blank" rel="noreferrer" className='finder'>Created by Christopher B</a>
             </div>
             <div className='friend-container'>
                 <div className={`friend-button ${currentTab.type === 'friend' ? 'current-room' : ''}`} onClick={() => {
@@ -40,10 +40,13 @@ function Nav() {
                         </div>
                     </div>
                     <div className='setting-container'>
-                        <button className='setting-button' onClick={() => { logout(); }}>
+                        <button className='setting-button' onClick={() => openDialog('setting')}>
                             <span className="material-symbols-outlined">
                                 settings
                             </span>
+                        </button>
+                        <button className='setting-button open-logout-button' onClick={() => openDialog('logout')}>
+                            <span className='material-symbols-outlined'>logout</span>
                         </button>
                     </div>
                 </div>

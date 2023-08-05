@@ -1,14 +1,18 @@
-import { SocketProvider } from './contexts/SocketContext';
-import { AuthProvider } from './contexts/AuthContext';
-import Views from './Views';
+import Nav from './components/Nav/Nav'
+import Body from './components/Body/Body'
+import Dialog from './components/Dialog/Dialog'
+
+import './App.css';
 
 
 export default function App() {
     return (
-        <AuthProvider>
-            <SocketProvider>
-                <Views />
-            </SocketProvider>
-        </AuthProvider>
+        <>
+            <Dialog />
+            <div className='App'>
+                <Nav />
+                <Body />
+            </div>
+        </>
     );
 }

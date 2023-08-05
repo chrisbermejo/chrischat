@@ -12,7 +12,7 @@ function ChatRoom() {
         if (chatMessage.current && currentTab.type !== 'conversations') {
             chatMessage.current.scrollIntoView();
         }
-    }, [conversationMessages, currentTab.conversationID]);
+    }, [conversationMessages, chatMessage, currentTab.type, currentTab.conversationID]);
 
     return (
         <div className='chatroom-chat-container'>

@@ -34,7 +34,6 @@ function Login() {
                 setUser(data.username);
                 setUserProfilePicture(data.picture);
                 setIsAuthenticated(true);
-                console.log('logln', data.username);
                 navigate('/channel');
             } else {
                 console.log('failed');

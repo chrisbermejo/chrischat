@@ -15,7 +15,6 @@ export const SocketProvider = ({ children }) => {
         if (isAuthenticated && !socket && user) {
             const newSocket = createSocket();
             newSocket.on('connect', () => {
-                console.log('Socket connected');
                 setSocket(newSocket);
                 setSocketID(newSocket.id);
             });

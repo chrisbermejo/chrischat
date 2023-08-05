@@ -82,6 +82,7 @@ body,
 .setting-container {
     display: flex;
     align-items: center;
+    gap: .1rem;
 }
 
 .setting-button {
@@ -94,6 +95,7 @@ body,
     width: 34px;
     align-items: center;
     justify-content: center;
+    cursor: pointer;
 }
 
 .user-info:hover,
@@ -456,10 +458,9 @@ body,
 }
 
 .finder:visited,
-.finder:active,
-{
-text-decoration: none;
-color: rgba(255, 255, 255, 0.425);
+.finder:active {
+    text-decoration: none;
+    color: rgba(255, 255, 255, 0.425);
 }
 
 .user--avatar {
@@ -757,4 +758,16 @@ color: rgba(255, 255, 255, 0.425);
 .add-friend-error-message {
     color: rgb(255, 101, 101);
     font-size: .9rem;
+}
+
+.setting-button:hover span {
+    color: white;
+}
+
+.open-logout-button:hover {
+    background-color: red;
+}
+
+.setting-dialog-close-button-container span {
+    font-family: 'Material Symbols Outlined';
 }
