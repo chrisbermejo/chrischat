@@ -29,6 +29,7 @@ body,
     display: flex;
     height: 100%;
     width: 100%;
+    overflow-x: hidden;
 }
 
 .Nav {
@@ -81,6 +82,7 @@ body,
 .setting-container {
     display: flex;
     align-items: center;
+    gap: .1rem;
 }
 
 .setting-button {
@@ -93,6 +95,7 @@ body,
     width: 34px;
     align-items: center;
     justify-content: center;
+    cursor: pointer;
 }
 
 .user-info:hover,
@@ -107,7 +110,7 @@ body,
     line-height: .86;
 }
 
-.chatroom {
+.body {
     display: flex;
     flex-direction: column;
     background-color: #313338;
@@ -325,7 +328,7 @@ body,
 
 /* Chrome, Edge, and Safari */
 *::-webkit-scrollbar {
-    width: 6px;
+    width: .325rem;
 }
 
 *::-webkit-scrollbar-thumb {
@@ -378,6 +381,7 @@ body,
     padding: .5rem .5rem;
     align-items: baseline;
     cursor: default;
+    padding-right: .875rem;
 }
 
 .rooms-title-text {
@@ -448,6 +452,15 @@ body,
     color: rgba(255, 255, 255, 0.425);
     text-align: left;
     cursor: pointer;
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+}
+
+.finder:visited,
+.finder:active {
+    text-decoration: none;
+    color: rgba(255, 255, 255, 0.425);
 }
 
 .user--avatar {
@@ -473,6 +486,11 @@ body,
     font-weight: 600;
     font-size: 1rem;
     line-height: 1;
+    cursor: pointer;
+}
+
+.add-friend-tab-button-active {
+    opacity: .8;
 }
 
 .add-friend-tab-button-text,
@@ -527,7 +545,7 @@ body,
 }
 
 .add-friend-input-container {
-    border: 1px solid black;
+    border: 1px solid rgba(0, 0, 0, 0.075);
 }
 
 .add-friend-input-container-active {
@@ -562,6 +580,10 @@ body,
     height: 1rem;
 }
 
+.search-bar-icon {
+    cursor: pointer;
+}
+
 .friend-list-search-bar-container {
     border-radius: 4px;
 }
@@ -593,12 +615,18 @@ body,
     align-items: center;
     flex-direction: row;
     min-width: 0;
-    /* overflow: hidden; */
+    width: 100%;
+    justify-content: space-between;
+}
+
+.friend-nav-tabs {
+    display: flex;
 }
 
 .friend-nav-tab {
     margin: 0 .5rem;
     padding: 0.125rem .5rem;
+    cursor: pointer;
 }
 
 .friend-nav-tab:hover {
@@ -609,6 +637,9 @@ body,
 .tab-title {
     color: white;
     padding: 0.125rem .5rem;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
 }
 
 .friend-list-header {
@@ -621,7 +652,7 @@ body,
 .friend-nav-empty-space {
     display: flex;
     height: 100%;
-    width: 40px;
+    width: 1.4em;
     background: linear-gradient(to right, rgb(49 51 56 / 0%) 0%, rgb(49 51 56) 25%);
 }
 
@@ -643,6 +674,11 @@ body,
 
 .friend-list-item-container {
     overflow-y: scroll;
+    overflow-x: hidden;
+}
+
+.friend-list-item-container::-webkit-scrollbar-track {
+    background-color: #313338;
 }
 
 .friend-list-item:hover {
@@ -722,4 +758,16 @@ body,
 .add-friend-error-message {
     color: rgb(255, 101, 101);
     font-size: .9rem;
+}
+
+.setting-button:hover span {
+    color: white;
+}
+
+.open-logout-button:hover {
+    background-color: red;
+}
+
+.setting-dialog-close-button-container span {
+    font-family: 'Material Symbols Outlined';
 }

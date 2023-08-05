@@ -7,9 +7,9 @@ export const InfoContext = createContext();
 export const InfoProvider = ({ children }) => {
 
     //Socket info
-    const { socket, socketID } = useSocket();
+    const { socket } = useSocket();
     //User info
-    const { user } = useAuth();
+    const { user, isAuthenticated, setIsAuthorized } = useAuth();
     //Probably rename this to Input
     const [message, setMessage] = useState('');
     //Stores user's rooms
@@ -21,7 +21,7 @@ export const InfoProvider = ({ children }) => {
     //Store information on the current room in
     const [currentTab, setCurrentTab] = useState({
         type: 'friend',
-        conversationID: 'null',
+        conversationID: null,
         conversationName: null,
         conversationPicture: null,
     });
@@ -30,9 +30,22 @@ export const InfoProvider = ({ children }) => {
 
     const [friendList, setFriendList] = useState([])
 
-    const [isAuthorized, setIsAuthorized] = useState(true);
-
     const chatMessage = useRef(null);
+
+    const [addFriendVisible, setAddFriendVisible] = useState(false);
+
+    const dialogRef = useRef(null);
+
+    const [dialogType, setDialogType] = useState('');
+
+    const openDialog = (type) => {
+        setDialogType(type);
+        dialogRef.current.showModal();
+    };
+
+    const handleFriendVisible = () => {
+        setAddFriendVisible((prev) => { return !prev });
+    };
 
     const sendMessage = () => {
         if (message !== '' && currentTab.conversationID !== null) {
@@ -145,9 +158,9 @@ export const InfoProvider = ({ children }) => {
     };
 
     const handleRoomClick = async (tab) => {
-        if (isAuthorized && tab.type === 'friend') {
+        if (isAuthenticated && tab.type === 'friend') {
             setCurrentTab((prevCurrentTab) => ({ ...prevCurrentTab, type: 'friend', conversationID: null, conversationName: null, conversationPicture: null }));
-        } else if (isAuthorized && tab.type === 'group' || tab.type === 'private') {
+        } else if (isAuthenticated && ((tab.type === 'group') || (tab.type === 'private'))) {
             setCurrentTab((prevCurrentTab) => ({ ...prevCurrentTab, type: 'chat', conversationID: tab.chatid, conversationName: tab.chat_name, conversationPicture: tab.chat_picture }));
             if (!conversationMessages[tab.chatid] || !(roomClicked[tab.chatid] || false)) {
                 await fetchRoomMessages(tab.chatid, conversationMessages[tab.chatid]?.[0]?.date);
@@ -173,21 +186,50 @@ export const InfoProvider = ({ children }) => {
                     return [roomToUpdate, ...updatedRooms];
                 });
             });
+
+            socket.on('receiveFriendRequest', (data) => {
+                setFriendList((prev) => [...prev, data]);
+            });
+
+            socket.on('receiveDelcineRequest', (data) => {
+                setFriendList((prevFriendList) => {
+                    return prevFriendList.filter(
+                        (friend) => !(friend.receiver.userid === data.receiver && friend.sender.userid === data.sender)
+                    );
+                });
+            });
+
+            socket.on('receiveAcceptRequest', (data, newChat) => {
+                setFriendList((prevFriendList) => {
+                    return prevFriendList.map((friend) => {
+                        if (friend.receiver.userid === data.receiver && friend.sender.userid === data.sender) {
+                            return { ...friend, status: 'accepted' };
+                        }
+                        return friend;
+                    });
+                });
+                setFetchedConversations((prev) => [newChat, ...prev]);
+            });
         }
 
         return () => {
             if (socket) {
                 socket.off('receive_message');
+                socket.off('receiveFriendRequest');
+                socket.off('receiveDelcineRequest');
             }
         };
     }, [socket]);
 
+    // eslint-disable-next-line
     useEffect(() => {
-        if (user) {
+        if (isAuthenticated && user && socket) {
             fetchRoom();
             fetchFriendList();
         };
-    }, []);
+        // eslint-disable-next-line
+    }, [isAuthenticated, user, socket]);
+
 
     useEffect(() => {
         if (fetchedConversations.length > 0 && socket) {
@@ -195,15 +237,8 @@ export const InfoProvider = ({ children }) => {
                 socket.emit('join', conversations.chatid, user);
             });
         };
+        // eslint-disable-next-line
     }, [fetchedConversations]);
-
-    useEffect(() => {
-        console.log(conversationMessages)
-    }, [conversationMessages])
-
-    useEffect(() => {
-        console.log(friendList)
-    }, [friendList])
 
 
     return (
@@ -219,14 +254,18 @@ export const InfoProvider = ({ children }) => {
             currentTab,
             setCurrentTab,
             chatMessage,
-            isAuthorized,
-            setIsAuthorized,
             sendMessage,
             fetchRoomMessages,
             fetchRoom,
             handleRoomClick,
             friendList,
-            setFriendList
+            setFriendList,
+            addFriendVisible,
+            handleFriendVisible,
+            dialogRef,
+            dialogType,
+            setDialogType,
+            openDialog,
         }}>
             {children}
         </InfoContext.Provider>

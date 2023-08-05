@@ -1,0 +1,53 @@
+.logout-container {
+    width: 450px;
+}
+
+.logout-text {
+    display: flex;
+    gap: .5rem;
+    flex-direction: column;
+    background-color: #313338;
+    padding: 1rem;
+    padding-bottom: 3rem;
+}
+
+.logout-text-title {
+    color: rgb(255, 255, 255);
+}
+
+.logout-text-desc {
+    color: rgba(255, 255, 255, 0.651);
+    font-size: .9rem;
+}
+
+.logout-buttons {
+    background-color: #2b2d31;
+    display: flex;
+    justify-content: flex-end;
+    padding: 1rem;
+    gap: .6rem;
+}
+
+.logout-button {
+    border-radius: 4px;
+    border: none;
+    padding: .6rem 1.8rem;
+}
+
+.logout-button.logout-button-logout {
+    background-color: #da373c;
+    color: white;
+}
+
+.logout-button-logout:hover {
+    background-color: red;
+}
+
+.logout-button.logout-button-cancel {
+    color: white;
+    background-color: transparent;
+}
+
+.logout-button-cancel:hover {
+    text-decoration: underline;
+}

@@ -9,8 +9,8 @@ export const AuthProvider = ({ children }) => {
     const navigate = useNavigate();
 
     const [isAuthenticated, setIsAuthenticated] = useState(null);
-    const [user, setUser] = useState(null);
-    const [userProfilePicture, setUserProfilePicture] = useState(null);
+    const [user, setUser] = useState(false);
+    const [userProfilePicture, setUserProfilePicture] = useState(false);
 
     const logout = async () => {
         try {
@@ -18,6 +18,7 @@ export const AuthProvider = ({ children }) => {
                 method: 'POST',
                 credentials: 'include',
                 headers: {
+                    'Cache-Control': 'no-cache',
                     'Content-Type': 'application/json'
                 },
             });
@@ -47,7 +48,6 @@ export const AuthProvider = ({ children }) => {
                     setUser(data.username);
                     setUserProfilePicture(data.picture);
                     setIsAuthenticated(data.isLoggedIn);
-                    // navigate('/channel');
                 } else if (response.status === 401) {
                     setIsAuthenticated(false);
                     console.log(`User has to sign in: ${response.status}`);
@@ -62,7 +62,7 @@ export const AuthProvider = ({ children }) => {
 
 
     return (
-        <AuthContext.Provider value={{ user, logout, userProfilePicture, isAuthenticated, setIsAuthenticated, setUser, setUserProfilePicture, setIsAuthenticated }}>
+        <AuthContext.Provider value={{ user, logout, userProfilePicture, isAuthenticated, setIsAuthenticated, setUser, setUserProfilePicture }}>
             {children}
         </AuthContext.Provider>
     );

@@ -3,16 +3,15 @@ const http = require('http');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
 
-require('./database');
-
 const app = express();
 
 const corsOptions = {
     origin: 'http://localhost:3000',
-    methods: 'GET, POST, OPTIONS, DELETE',
+    methods: 'GET, POST, OPTIONS, DELETE, UPDATE',
     credentials: true,
     allowedHeaders: 'Origin, X-Requested-With, Content-Type, Accept, Authorization, Cache-Control',
 };
+
 app.use(cors(corsOptions));
 
 app.use(express.json());
