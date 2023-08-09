@@ -1,5 +1,6 @@
 import useInfo from '../../hooks/useInfo';
-import Settings from './Formats/Settings'
+import UserProfile from './Formats/UserProfile'
+import CreateGroup from './CreateGroup/CreateGroup'
 import Logout from './Formats/Logout'
 
 import './Dialog.css'
@@ -29,26 +30,7 @@ export default function Dialog() {
 
     return (
         <dialog className='dialog' ref={dialogRef} >
-            {dialogType === 'logout' ? <Logout dialogRef={dialogRef} /> : dialogType === 'setting' ? <Settings dialogRef={dialogRef} /> : null}
+            {dialogType === 'logout' ? <Logout dialogRef={dialogRef} /> : dialogType === 'setting' ? <UserProfile dialogRef={dialogRef} /> : dialogType === 'create-dm' ? <CreateGroup /> : null}
         </dialog >
     )
 }
-
-    // useEffect(() => {
-
-    //     const handleDialog = () => {
-    //         console.log('hello')
-    //     }
-
-    //     const dialogElement = dialogRef.current;
-
-    //     if (dialogElement) {
-    //         dialogElement.addEventListener('close', handleDialog);
-    //     }
-
-    //     return () => {
-    //         if (dialogElement) {
-    //             dialogElement.removeEventListener('close', handleDialog);
-    //         }
-    //     };
-    // }, [dialogRef]);

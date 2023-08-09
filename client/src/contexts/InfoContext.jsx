@@ -210,6 +210,11 @@ export const InfoProvider = ({ children }) => {
                 });
                 setFetchedConversations((prev) => [newChat, ...prev]);
             });
+
+            socket.on('receiveConversation', (data) => {
+                setFetchedConversations((prev) => [data, ...prev]);
+                dialogRef.current.close();
+            });
         }
 
         return () => {
@@ -237,8 +242,10 @@ export const InfoProvider = ({ children }) => {
                 socket.emit('join', conversations.chatid, user);
             });
         };
-        // eslint-disable-next-line
     }, [fetchedConversations]);
+
+    useEffect(() => { console.log(friendList) }
+    ,[friendList])
 
 
     return (

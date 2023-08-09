@@ -43,14 +43,19 @@ export const AuthProvider = ({ children }) => {
                         'Content-Type': 'application/json'
                     },
                 });
-                if (response.ok && response.status === 200) {
+                if (response.ok) {
                     const data = await response.json();
-                    setUser(data.username);
-                    setUserProfilePicture(data.picture);
-                    setIsAuthenticated(data.isLoggedIn);
-                } else if (response.status === 401) {
+                    if (data.isLoggedIn) {
+                        setUser(data.username);
+                        setUserProfilePicture(data.picture);
+                        setIsAuthenticated(data.isLoggedIn);
+                        navigate('/channel');
+                    } else if (data.isLoggedIn === false) {
+                        setIsAuthenticated(data.isLoggedIn);
+                    }
+                }
+                else {
                     setIsAuthenticated(false);
-                    console.log(`User has to sign in: ${response.status}`);
                 }
             } catch (error) {
                 setIsAuthenticated(false);

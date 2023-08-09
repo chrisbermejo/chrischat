@@ -1,6 +1,5 @@
 import React, { createContext, useState, useEffect } from 'react';
 import useAuth from '../hooks/useAuth';
-
 import { createSocket } from '../socket';
 
 export const SocketContext = createContext();

@@ -2,7 +2,7 @@ import useAuth from '../../hooks/useAuth';
 import useInfo from '../../hooks/useInfo';
 import useSocket from '../../hooks/useSocket';
 import AddFriend from './AddFriend';
-import FriendRequestType from '../Friend/FriendRequestType';
+import FriendFormat from '../Friend/FriendFormat';
 
 function FriendList() {
 
@@ -24,7 +24,7 @@ function FriendList() {
             <h5 className='friend-list-selection-header'>ONLINE - {friendList.length}</h5>
             <div className='friend-list-item-container'>
                 {friendList.map((friend, index) => (
-                    <FriendRequestType key={index} friend={friend} user={user} socket={socket} />
+                    <FriendFormat key={index} friend={friend} user={user} socket={socket} />
                 ))}
             </div>
             <div className='friend-list-footer'></div>

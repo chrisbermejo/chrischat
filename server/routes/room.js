@@ -13,7 +13,8 @@ const verifyAccessToken = async (req, res, next) => {
     const refreshToken = req.cookies.refresh_token;
 
     if (!accesstoken && !refreshToken) {
-        return res.status(401).send({ message: 'Access Denied' }); // If there's no access token and no refresh token, it means the user is not authenticated.
+        req.user = { isLoggedIn: false, username: false, picture: false };
+        return next();
     }
     try {
         if (accesstoken) { // Verify the access token and proceed with the request if valid
@@ -24,7 +25,7 @@ const verifyAccessToken = async (req, res, next) => {
                 LIMIT 1
             `;
             const result = await pool.query(selectUserQuery, [decoded.username]);
-            req.user = result.rows[0];
+            req.user = { isLoggedIn: true, username: result.rows[0].username, picture: result.rows[0].picture }
             return next();
         } else {
             // If the access token is not present, attempt to refresh it using the refresh token
@@ -35,7 +36,6 @@ const verifyAccessToken = async (req, res, next) => {
                 WHERE userid = $1
                 LIMIT 1
             `;
-            console.log(decodedRefreshToken)
             const result = await pool.query(selectUserQuery, [decodedRefreshToken.userid]);
             const user = result.rows[0];
             // Generate a new access token
@@ -58,7 +58,7 @@ const verifyAccessToken = async (req, res, next) => {
 };
 
 router.get('/api/user', verifyAccessToken, async (req, res) => {
-    res.status(200).json({ isLoggedIn: true, username: req.user.username, picture: req.user.picture });
+    res.status(200).json(req.user);
 });
 
 router.get('/api/room/:roomID/messages', verifyAccessToken, async (req, res) => {
@@ -98,7 +98,7 @@ router.get('/api/user/rooms', verifyAccessToken, async (req, res) => {
                         WHEN u.username = $1 THEN u2.username
                         ELSE u.username
                     END
-                ELSE NULL -- Handle other types if needed
+                ELSE NULL
             END AS chat_name,
             CASE
                 WHEN c.type = 'group' THEN c.group_picture
@@ -107,7 +107,7 @@ router.get('/api/user/rooms', verifyAccessToken, async (req, res) => {
                         WHEN u.username = $1 THEN u2.picture
                         ELSE u.picture
                     END
-                ELSE NULL -- Handle other types if needed
+                ELSE NULL
             END AS chat_picture,
             c.participants_count,
             c.recentmessagedate
@@ -130,6 +130,7 @@ router.get('/api/user/rooms', verifyAccessToken, async (req, res) => {
 // });
 
 router.post('/createConversation', verifyAccessToken, async (req, res) => {
+
     const { name, users } = req.body;
 
     try {
@@ -140,21 +141,12 @@ router.post('/createConversation', verifyAccessToken, async (req, res) => {
         const insertUserQuery = `
             INSERT INTO chats ( chatid, type, group_name, group_picture, participants_count, recentmessagedate)
             VALUES ($1, $2, $3, $4, $5, NOW())
+            RETURNING group_name, group_picture, participants_count, recentmessagedate
         `;
-        await pool.query(
+        const insertResults = await pool.query(
             insertUserQuery,
-            [chatid, 'group', name, 'https://images-ext-1.discordapp.net/external/PNLH64xfgvwICQgUWi9Ugld5IIcTgs5fURgaeVjx0g4/https/pbs.twimg.com/media/F15M-yMXoAIcTFz.jpg?width=893&height=583', user.length]
+            [chatid, 'group', name, 'https://images-ext-1.discordapp.net/external/PNLH64xfgvwICQgUWi9Ugld5IIcTgs5fURgaeVjx0g4/https/pbs.twimg.com/media/F15M-yMXoAIcTFz.jpg?width=893&height=583', users.length]
         );
-
-        //PRIVATE QUERY
-        // const insertUserQuery = `
-        //     INSERT INTO chats ( chatid, type, participants_count, recentmessagedate)
-        //     VALUES ($1, $2, $3, NOW())
-        // `;
-        // await pool.query(
-        //     insertUserQuery,
-        //     [chatid, 'private', users.length]
-        // );
 
         for (const e of users) {
             const selectUserID = ` SELECT userid FROM users WHERE username = $1;`;
@@ -166,7 +158,10 @@ router.post('/createConversation', verifyAccessToken, async (req, res) => {
             await pool.query(insertUserChatQuery, [resultUserID.rows[0].userid, chatid]);
         }
 
-        res.status(201).send({ message: 'Conversation created successfully' });
+        const newConv = insertResults.rows[0];
+
+
+        res.status(201).send({ chat_name: newConv.group_name, chat_picture: newConv.group_picture, chatid: chatid, participants_count: newConv.participants_count, recentmessagedate: newConv.recentmessagedate, type: "group" });
     } catch (error) {
         console.error('Error creating conversation:', error);
         res.status(500).send({ error: 'An error occurred while creating the conversation' });
@@ -191,7 +186,9 @@ router.post('/api/addFriend/', verifyAccessToken, async (req, res) => {
             WHERE sender = $1 AND receiver = $2 OR sender = $2 AND receiver = $1
             LIMIT 1
         `;
+
         const result = await pool.query(selectRelationshipQuery, [resultSenderID.rows[0].userid, resultReceiverID.rows[0].userid]);
+
         if (result.rows.length > 0 && result.rows[0].status === 'accepted') {
             res.status(401).send({ message: 'Already friends with the user!' });
         } else if (result.rows.length > 0 && result.rows[0].status === 'pending') {
@@ -202,24 +199,24 @@ router.post('/api/addFriend/', verifyAccessToken, async (req, res) => {
                 res.status(401).send({ message: 'User not found' });
             } else {
                 const insertRelationshipQuery = `
-                INSERT INTO useruserrelationship (sender, receiver, status)
-                VALUES ($1, $2, $3)
-                RETURNING id 
-            `;
+                    INSERT INTO useruserrelationship (sender, receiver, status)
+                    VALUES ($1, $2, $3)
+                    RETURNING id 
+                `;
 
                 await pool.query(insertRelationshipQuery, [resultSenderID.rows[0].userid, resultReceiverID.rows[0].userid, 'pending']);
 
                 const sendingQuery = `
-                SELECT
-                    uur.status,
-                    json_build_object('userid', u.userid, 'username', u.username, 'picture', u.picture) AS sender,
-                    json_build_object('userid', ur.userid, 'username', ur.username, 'picture', ur.picture) AS receiver
-                FROM useruserrelationship uur
-                JOIN users u ON uur.sender = u.userid
-                JOIN users ur ON uur.receiver = ur.userid
-                WHERE uur.sender = $1 AND uur.receiver = $2
-                LIMIT 1
-            `
+                    SELECT
+                        uur.status,
+                        json_build_object('userid', u.userid, 'username', u.username, 'picture', u.picture) AS sender,
+                        json_build_object('userid', ur.userid, 'username', ur.username, 'picture', ur.picture) AS receiver
+                    FROM useruserrelationship uur
+                    JOIN users u ON uur.sender = u.userid
+                    JOIN users ur ON uur.receiver = ur.userid
+                    WHERE uur.sender = $1 AND uur.receiver = $2
+                    LIMIT 1
+                `;
                 const sendingResult = await pool.query(sendingQuery, [resultSenderID.rows[0].userid, resultReceiverID.rows[0].userid]);
 
                 res.status(200).send({ request: sendingResult.rows[0], message: 'Friend request sent successfully' });
@@ -277,7 +274,7 @@ router.delete('/api/deleteRequest', verifyAccessToken, async (req, res) => {
 
 router.post('/api/acceptRequest', verifyAccessToken, async (req, res) => {
     try {
-        
+
         const receiver = req.body.receiver;
         const sender = req.body.sender;
 
@@ -311,14 +308,14 @@ router.post('/api/acceptRequest', verifyAccessToken, async (req, res) => {
 
         const forReceiver = {
             chatid: chatid,
-            type : 'private',
+            type: 'private',
             chat_name: resultSenderID.rows[0].username,
             chat_picture: resultSenderID.rows[0].picture,
             participants_count: 2,
             recentmessagedate: insertResults.rows[0].recentmessagedate,
         }
 
-        const forSender =  {
+        const forSender = {
             chatid: chatid,
             type: 'private',
             chat_name: resultReceiverID.rows[0].username,

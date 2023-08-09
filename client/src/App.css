@@ -15,6 +15,10 @@ input[type=submit] {
     --color-selected: rgba(0, 0, 0, 0.116);
 }
 
+button {
+    cursor: pointer;
+}
+
 /* input:-internal-autofill-selected {
     background-color: none;
 } */
@@ -62,6 +66,8 @@ body,
     font-size: 1.05rem;
     gap: .2rem;
     border-radius: var(--selected);
+    -webkit-user-select: none;
+    user-select: none;
 }
 
 .user-info-container {
@@ -69,6 +75,8 @@ body,
     padding: .4rem .8rem;
     display: flex;
     justify-content: space-between;
+    -webkit-user-select: none;
+    user-select: none;
 }
 
 .user-info {
@@ -77,6 +85,7 @@ body,
     align-items: center;
     padding: 0 .2rem;
     padding-right: .6rem;
+    cursor: pointer;
 }
 
 .setting-container {
@@ -189,6 +198,8 @@ body,
 
 .chatroom-message-text {
     display: flex;
+    word-break: break-word;
+    text-align: start;
 }
 
 .chatroom-message-time {
@@ -362,6 +373,8 @@ body,
     align-items: center;
     height: 48px;
     padding-left: 1rem;
+    -webkit-user-select: none;
+    user-select: none;
 }
 
 .chatroom-title-picture {
@@ -372,7 +385,8 @@ body,
 }
 
 .rooms {
-    overflow-y: scroll;
+    overflow-y: auto;
+    overflow-x: hidden;
 }
 
 .rooms-title {
@@ -401,6 +415,8 @@ body,
     margin: .2rem .5rem;
     padding: .2rem .6rem;
     border-radius: 4px;
+    -webkit-user-select: none;
+    user-select: none;
 }
 
 .room:hover,
@@ -670,10 +686,12 @@ body,
     border-top: 1px solid rgba(255, 255, 255, 0.171);
     margin: 0 1.8rem;
     justify-content: space-between;
+    -webkit-user-select: none;
+    user-select: none;
 }
 
 .friend-list-item-container {
-    overflow-y: scroll;
+    overflow-y: auto;
     overflow-x: hidden;
 }
 

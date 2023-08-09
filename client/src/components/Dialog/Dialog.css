@@ -6,12 +6,14 @@
     left: 50%;
     transform: translate(-50%, -50%);
     padding: 0;
-    width: 450px;
     border-radius: 6px;
     background: rgba(255, 255, 255, 0);
     -webkit-background-clip: padding-box;
     background-clip: content-box;
     backface-visibility: hidden;
+    overflow: hidden;
+    width: 450px;
+    min-width: 410px;
 }
 
 .dialog[open] {

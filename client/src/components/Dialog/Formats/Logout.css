@@ -1,14 +1,12 @@
-.logout-container {
-    width: 450px;
-}
-
 .logout-text {
     display: flex;
     gap: .5rem;
     flex-direction: column;
     background-color: #313338;
     padding: 1rem;
-    padding-bottom: 3rem;
+    padding-bottom: 2rem;
+    -webkit-user-select: none;
+    user-select: none;
 }
 
 .logout-text-title {

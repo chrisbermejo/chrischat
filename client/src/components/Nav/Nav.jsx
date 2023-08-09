@@ -22,7 +22,7 @@ function Nav() {
             </div>
             <div className='rooms-title'>
                 <span className='rooms-title-text'>DIRECT MESSAGES</span>
-                <span className='rooms-title-text plus-sign'>+</span>
+                <span className='rooms-title-text plus-sign' onClick={() => openDialog('create-dm')}>+</span>
             </div>
             <div className='rooms'>
                 {fetchedConversations.map((conversation, index) => (
@@ -33,18 +33,13 @@ function Nav() {
             </div>
             <div className='nav-footer'>
                 <div className='user-info-container'>
-                    <div className='user-info'>
+                    <div className='user-info' onClick={() => openDialog('setting')}>
                         <img src={userProfilePicture} className='user--avatar' alt={user} />
                         <div className='user--name'>
                             {user}
                         </div>
                     </div>
                     <div className='setting-container'>
-                        <button className='setting-button' onClick={() => openDialog('setting')}>
-                            <span className="material-symbols-outlined">
-                                settings
-                            </span>
-                        </button>
                         <button className='setting-button open-logout-button' onClick={() => openDialog('logout')}>
                             <span className='material-symbols-outlined'>logout</span>
                         </button>

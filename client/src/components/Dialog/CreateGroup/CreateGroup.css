@@ -1,0 +1,71 @@
+.friend-list-selector {
+    display: flex;
+    flex-direction: column;
+    gap: .2rem;
+    height: 214px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.friend-list-selector-item {
+    display: flex;
+    gap: .5rem;
+    width: 100%;
+}
+
+.create-group-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.create-group-form-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: .5rem;
+    background-color: #383a40;
+    padding: 1.5rem;
+}
+
+.create-group-header {
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.create-group-form-input {
+    display: flex;
+    flex-direction: column;
+}
+
+.create-group-form-input label {
+    font-size: .8rem;
+    font-weight: 800;
+    color: rgba(255, 255, 255, 0.774);
+}
+
+.create-group-form-input input {
+    outline: none;
+    border: none;
+    border-radius: 4px;
+    padding: .6rem .4rem;
+    background-color: rgba(0, 0, 0, 0.281);
+    color: white;
+    display: flex;
+    justify-content: center;
+}
+
+.create-group-form-input {
+    display: flex;
+    gap: .25rem;
+    color: white;
+}
+
+.friend-list-selector-item-name {
+    font-weight: 400;
+    font-size: 1rem;
+    color: rgba(255, 255, 255, 0.801);
+    display: flex;
+    align-items: center;
+}
