@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import useInfo from '../../hooks/useInfo';
 import useSocket from '../../hooks/useSocket';
 import useAuth from '../../hooks/useAuth';
 

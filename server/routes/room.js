@@ -181,6 +181,10 @@ router.post('/api/addFriend/', verifyAccessToken, async (req, res) => {
         const selectReceiverID = ` SELECT userid FROM users WHERE username = $1;`;
         const resultReceiverID = await pool.query(selectReceiverID, [receiver]);
 
+        if (!(resultReceiverID.rows.length) || !(resultSenderID.rows.length)) {
+            res.status(401).send({ message: 'User not found' });
+        }
+
         const selectRelationshipQuery = `
             SELECT sender, receiver, status FROM useruserrelationship
             WHERE sender = $1 AND receiver = $2 OR sender = $2 AND receiver = $1
@@ -193,20 +197,11 @@ router.post('/api/addFriend/', verifyAccessToken, async (req, res) => {
             res.status(401).send({ message: 'Already friends with the user!' });
         } else if (result.rows.length > 0 && result.rows[0].status === 'pending') {
             res.status(401).send({ message: 'Friend Request already sent!' });
-        } else {
-
-            if (!(resultReceiverID.rows.length)) {
-                res.status(401).send({ message: 'User not found' });
-            } else {
-                const insertRelationshipQuery = `
-                    INSERT INTO useruserrelationship (sender, receiver, status)
-                    VALUES ($1, $2, $3)
-                    RETURNING id 
-                `;
-
-                await pool.query(insertRelationshipQuery, [resultSenderID.rows[0].userid, resultReceiverID.rows[0].userid, 'pending']);
-
-                const sendingQuery = `
+        } else if (result.rows.length > 0 && result.rows[0].status === 'unfriended') {
+            const query = `UPDATE useruserrelationship SET status = 'pending' WHERE receiver = $1 AND sender = $2 OR receiver = $2 AND sender = $1;`;
+            const updateResults = await pool.query(query, [resultReceiverID.rows[0].userid, resultSenderID.rows[0].userid]);
+            console.log(updateResults.rows[0])
+            const sendingQuery = `
                     SELECT
                         uur.status,
                         json_build_object('userid', u.userid, 'username', u.username, 'picture', u.picture) AS sender,
@@ -217,10 +212,32 @@ router.post('/api/addFriend/', verifyAccessToken, async (req, res) => {
                     WHERE uur.sender = $1 AND uur.receiver = $2
                     LIMIT 1
                 `;
-                const sendingResult = await pool.query(sendingQuery, [resultSenderID.rows[0].userid, resultReceiverID.rows[0].userid]);
+            const sendingResult = await pool.query(sendingQuery, [resultSenderID.rows[0].userid, resultReceiverID.rows[0].userid]);
+            console.log(sendingResult.rows[0])
+            res.status(200).send({ request: sendingResult.rows[0], message: 'Friend request sent successfully' });
+        } else {
+            const insertRelationshipQuery = `
+                    INSERT INTO useruserrelationship (sender, receiver, status)
+                    VALUES ($1, $2, $3)
+                    RETURNING id 
+                `;
 
-                res.status(200).send({ request: sendingResult.rows[0], message: 'Friend request sent successfully' });
-            }
+            await pool.query(insertRelationshipQuery, [resultSenderID.rows[0].userid, resultReceiverID.rows[0].userid, 'pending']);
+
+            const sendingQuery = `
+                    SELECT
+                        uur.status,
+                        json_build_object('userid', u.userid, 'username', u.username, 'picture', u.picture) AS sender,
+                        json_build_object('userid', ur.userid, 'username', ur.username, 'picture', ur.picture) AS receiver
+                    FROM useruserrelationship uur
+                    JOIN users u ON uur.sender = u.userid
+                    JOIN users ur ON uur.receiver = ur.userid
+                    WHERE uur.sender = $1 AND uur.receiver = $2
+                    LIMIT 1
+                `;
+            const sendingResult = await pool.query(sendingQuery, [resultSenderID.rows[0].userid, resultReceiverID.rows[0].userid]);
+
+            res.status(200).send({ request: sendingResult.rows[0], message: 'Friend request sent successfully' });
         }
     } catch (error) {
         console.error('Error adding friend:', error);
@@ -248,9 +265,9 @@ router.get('/api/user/friendlist', verifyAccessToken, async (req, res) => {
         JOIN useruserrelationship uur ON u.userid = uur.sender OR u.userid = uur.receiver
         LEFT JOIN users us ON uur.sender = us.userid
         LEFT JOIN users ur ON uur.receiver = ur.userid
-        WHERE u.username = $1;
+        WHERE u.username = $1 AND uur.status <> $2;
     `
-    const result = await pool.query(query, [req.user.username]);
+    const result = await pool.query(query, [req.user.username, 'unfriended']);
     const friendList = result.rows;
 
     res.json(friendList);
@@ -281,50 +298,68 @@ router.post('/api/acceptRequest', verifyAccessToken, async (req, res) => {
         const query = `UPDATE useruserrelationship SET status = 'accepted' WHERE receiver = $1 AND sender = $2;`;
         await pool.query(query, [receiver, sender]);
 
-        const chatid = uuidv4();
+        const findExistingChatQuery = `
+            SELECT EXISTS (
+            SELECT 1
+            FROM userchatrelationship AS ucr1
+            JOIN userchatrelationship AS ucr2 ON ucr1.chatid = ucr2.chatid
+            JOIN chats ON ucr1.chatid = chats.chatid
+            WHERE ucr1.userid = $1
+            AND ucr2.userid = $2
+            AND chats.type = $3
+            );
+        `
 
-        const insertUserQuery = `
-            INSERT INTO chats ( chatid, type, participants_count, recentmessagedate)
-            VALUES ($1, $2, $3, NOW())
-            RETURNING recentmessagedate;
-        `;
+        const findExistingChatResult = await pool.query(findExistingChatQuery, [receiver, sender, 'private']);
 
-        const insertResults = await pool.query(
-            insertUserQuery,
-            [chatid, 'private', 2]
-        );
+        if (!findExistingChatResult) {
+            const chatid = uuidv4();
 
-        const insertUserChatQuery = `
-            INSERT INTO userchatrelationship ( userid, chatid)
-            VALUES ($1, $2)
-        `;
+            const insertUserQuery = `
+                INSERT INTO chats ( chatid, type, participants_count, recentmessagedate)
+                VALUES ($1, $2, $3, NOW())
+                RETURNING recentmessagedate;
+            `;
 
-        await pool.query(insertUserChatQuery, [receiver, chatid]);
-        await pool.query(insertUserChatQuery, [sender, chatid]);
+            const insertResults = await pool.query(
+                insertUserQuery,
+                [chatid, 'private', 2]
+            );
 
-        const userInfoQuery = ` SELECT username, picture FROM users WHERE userid = $1;`;
-        const resultSenderID = await pool.query(userInfoQuery, [sender]);
-        const resultReceiverID = await pool.query(userInfoQuery, [receiver]);
+            const insertUserChatQuery = `
+                INSERT INTO userchatrelationship ( userid, chatid)
+                VALUES ($1, $2)
+            `;
 
-        const forReceiver = {
-            chatid: chatid,
-            type: 'private',
-            chat_name: resultSenderID.rows[0].username,
-            chat_picture: resultSenderID.rows[0].picture,
-            participants_count: 2,
-            recentmessagedate: insertResults.rows[0].recentmessagedate,
+            await pool.query(insertUserChatQuery, [receiver, chatid]);
+            await pool.query(insertUserChatQuery, [sender, chatid]);
+
+            const userInfoQuery = ` SELECT username, picture FROM users WHERE userid = $1;`;
+            const resultSenderID = await pool.query(userInfoQuery, [sender]);
+            const resultReceiverID = await pool.query(userInfoQuery, [receiver]);
+
+            const forReceiver = {
+                chatid: chatid,
+                type: 'private',
+                chat_name: resultSenderID.rows[0].username,
+                chat_picture: resultSenderID.rows[0].picture,
+                participants_count: 2,
+                recentmessagedate: insertResults.rows[0].recentmessagedate,
+            }
+
+            const forSender = {
+                chatid: chatid,
+                type: 'private',
+                chat_name: resultReceiverID.rows[0].username,
+                chat_picture: resultReceiverID.rows[0].picture,
+                participants_count: 2,
+                recentmessagedate: insertResults.rows[0].recentmessagedate,
+            }
+
+            res.status(200).send({ newChat: true, forReceiver: forReceiver, forSender: forSender, message: 'Accepting friend request successfully' });
         }
 
-        const forSender = {
-            chatid: chatid,
-            type: 'private',
-            chat_name: resultReceiverID.rows[0].username,
-            chat_picture: resultReceiverID.rows[0].picture,
-            participants_count: 2,
-            recentmessagedate: insertResults.rows[0].recentmessagedate,
-        }
-
-        res.status(200).send({ forReceiver: forReceiver, forSender: forSender, message: 'Accepting friend request successfully' });
+        res.status(200).send({ newChat: false, forReceiver: false, forSender: false, message: 'Accepting friend request successfully' });
 
     } catch (error) {
         console.error('Error accepting friend request:', error);

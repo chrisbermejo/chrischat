@@ -4,7 +4,7 @@ import { GroupLayout, DmLayout } from './ConversationLayout';
 
 function Nav() {
 
-    const { user, userProfilePicture, logout } = useAuth();
+    const { user, userProfilePicture } = useAuth();
     const { fetchedConversations, currentTab, handleRoomClick, openDialog } = useInfo();
 
     return (

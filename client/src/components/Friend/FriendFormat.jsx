@@ -36,7 +36,7 @@ export default function FriendFormat({ friend, user, socket }) {
             });
             if (response.ok) {
                 const data = await response.json();
-                socket.emit('sendAcceptRequest', [friend.receiver.username, friend.sender.username], users, [data.forReceiver, data.forSender])
+                socket.emit('sendAcceptRequest', data.newChat, [friend.receiver.username, friend.sender.username], users, [data.forReceiver, data.forSender])
             } else {
                 console.log(`Failed to accept friend request`);
             }

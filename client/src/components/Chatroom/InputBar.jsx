@@ -1,8 +1,8 @@
 import useInfo from '../../hooks/useInfo'
 
-function ChatRoomInputBar() {
+export function ChatRoomInputBar() {
 
-    const { sendMessage, message, setMessage, currentTab } = useInfo();
+    const { sendMessage, message, setMessage } = useInfo();
 
     const handleKeyPress = (e) => {
         if (e.key === 'Enter' && e.shiftKey) {
@@ -28,6 +28,13 @@ function ChatRoomInputBar() {
             />
         </div>
     )
-}
+};
 
-export default ChatRoomInputBar;
+export function AddFriend() {
+    return (
+        <div className='add-friend-inputs-container'>
+            <h2>Unable to message user!</h2>
+            <h3>Add user to friends list to send messages to them</h3>
+        </div>
+    )
+}

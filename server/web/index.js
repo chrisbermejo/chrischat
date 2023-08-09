@@ -91,16 +91,16 @@ module.exports = function setupWebSocket(server) {
             }
         });
 
-        socket.on('sendAcceptRequest', (users, data, requests) => {
-            for (let j = 0; j < users.length; j++) {
-                const receiverSocketIds = onlineUsers[users[j]];
-                if (receiverSocketIds) {
-                    for (let i = 0; i < receiverSocketIds.length; i++) {
-                        const socketId = receiverSocketIds[i];
-                        channel.to(socketId).emit('receiveAcceptRequest', data, requests[j]);
+        socket.on('sendAcceptRequest', (type, users, data, requests) => {
+                for (let j = 0; j < users.length; j++) {
+                    const receiverSocketIds = onlineUsers[users[j]];
+                    if (receiverSocketIds) {
+                        for (let i = 0; i < receiverSocketIds.length; i++) {
+                            const socketId = receiverSocketIds[i];
+                            channel.to(socketId).emit('receiveAcceptRequest', type, data, requests[j]);
+                        }
                     }
                 }
-            }
         });
 
         socket.on('sendConversation', (users, data) => {
@@ -139,10 +139,20 @@ module.exports = function setupWebSocket(server) {
             );
 
             newData.date = results.rows[0].date;
-            newData.from = 'socket'
 
-            console.log("emitted");
             channel.to(data.chatid).emit('receive_message', newData);
+
+            const updateRecentMessagesQuery = `
+                UPDATE chats
+                SET recentmessagedate = $1
+                WHERE chatid = $2;
+            `
+
+            await pool.query(
+                updateRecentMessagesQuery,
+                [results.rows[0].date, data.chatid,]
+            );
+
         });
 
         socket.on('disconnect', () => {

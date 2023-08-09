@@ -220,6 +220,16 @@ body,
     padding: 10px 2rem;
 }
 
+.add-friend-inputs-container {
+    margin: 10px 0;
+    display: flex;
+    justify-content: center;
+    padding: 10px 2rem;
+    flex-direction: column;
+    color: white;
+    align-items: center;
+}
+
 .chatroom-input {
     background-color: #383a40;
     color: white;

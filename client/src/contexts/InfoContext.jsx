@@ -161,7 +161,7 @@ export const InfoProvider = ({ children }) => {
         if (isAuthenticated && tab.type === 'friend') {
             setCurrentTab((prevCurrentTab) => ({ ...prevCurrentTab, type: 'friend', conversationID: null, conversationName: null, conversationPicture: null }));
         } else if (isAuthenticated && ((tab.type === 'group') || (tab.type === 'private'))) {
-            setCurrentTab((prevCurrentTab) => ({ ...prevCurrentTab, type: 'chat', conversationID: tab.chatid, conversationName: tab.chat_name, conversationPicture: tab.chat_picture }));
+            setCurrentTab((prevCurrentTab) => ({ ...prevCurrentTab, type: tab.type, conversationID: tab.chatid, conversationName: tab.chat_name, conversationPicture: tab.chat_picture }));
             if (!conversationMessages[tab.chatid] || !(roomClicked[tab.chatid] || false)) {
                 await fetchRoomMessages(tab.chatid, conversationMessages[tab.chatid]?.[0]?.date);
                 setRoomClicked((prev) => ({ ...prev, [tab.chatid]: true, }));
@@ -199,7 +199,7 @@ export const InfoProvider = ({ children }) => {
                 });
             });
 
-            socket.on('receiveAcceptRequest', (data, newChat) => {
+            socket.on('receiveAcceptRequest', (type, data, newChat) => {
                 setFriendList((prevFriendList) => {
                     return prevFriendList.map((friend) => {
                         if (friend.receiver.userid === data.receiver && friend.sender.userid === data.sender) {
@@ -208,7 +208,9 @@ export const InfoProvider = ({ children }) => {
                         return friend;
                     });
                 });
-                setFetchedConversations((prev) => [newChat, ...prev]);
+                if (type) {
+                    setFetchedConversations((prev) => [newChat, ...prev]);
+                }
             });
 
             socket.on('receiveConversation', (data) => {
@@ -244,8 +246,12 @@ export const InfoProvider = ({ children }) => {
         };
     }, [fetchedConversations]);
 
-    useEffect(() => { console.log(friendList) }
-    ,[friendList])
+    useEffect(() => {
+        console.log(friendList)
+        console.log(fetchedConversations)
+        console.log(currentTab)
+    }
+        , [currentTab])
 
 
     return (
