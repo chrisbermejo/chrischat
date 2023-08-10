@@ -3,13 +3,14 @@ import useSocket from '../../../hooks/useSocket';
 
 import './CreateGroup.css';
 import FriendList from './FriendList';
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 
 export default function CreateGroup() {
 
     const [selectedFriends, setSelectedFriends] = useState([]);
     const { user } = useAuth();
     const { socket } = useSocket();
+    const formRef = useRef(null);
 
     const handleSubmit = async (e, selectedFriends) => {
         e.preventDefault();
@@ -35,6 +36,8 @@ export default function CreateGroup() {
                 });
 
                 if (response.ok) {
+                    console.log(updatedFormData.users)
+                    formRef.current.reset();
                     const data = await response.json();
                     socket.emit('sendConversation', updatedFormData.users, data);
                 } else {
@@ -53,13 +56,19 @@ export default function CreateGroup() {
                 <h2>Create your group</h2>
             </div>
             <div className='create-group-form-container'>
-                <form className='create-group-form' onSubmit={(e) => handleSubmit(e, selectedFriends)}>
+                <form className='create-group-form' onSubmit={(e) => handleSubmit(e, selectedFriends)} ref={formRef}>
                     <div className='create-group-form-input'>
                         <label htmlFor='name' >GROUP NAME</label>
                         <input type='text' name='name' required />
                     </div>
-                    <FriendList setSelectedFriends={setSelectedFriends} />
-                    <input className='form-button-submit' type='submit' value='Create' />
+                    {selectedFriends.length > 1
+                        ? <FriendList setSelectedFriends={setSelectedFriends} />
+                        :
+                        <div className='no-friends-condition-div'>
+                            Need at least 2 friends to create a group!
+                        </div>
+                    }
+                    <input className=' create-group-button' type='submit' value='Create' disabled={selectedFriends.length === 0} />
                 </form>
             </div>
         </div>

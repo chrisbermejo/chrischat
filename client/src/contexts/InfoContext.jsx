@@ -217,6 +217,15 @@ export const InfoProvider = ({ children }) => {
                 setFetchedConversations((prev) => [data, ...prev]);
                 dialogRef.current.close();
             });
+
+            socket.on('receiveRemoveFriend', (data) => {
+                setFriendList((prevFriendList) => {
+                    return prevFriendList.filter(
+                        (friend) => !(friend.receiver.userid === data.receiver.userid && friend.sender.userid === data.sender.userid)
+                    );
+                });
+            });
+
         }
 
         return () => {
@@ -248,10 +257,7 @@ export const InfoProvider = ({ children }) => {
 
     useEffect(() => {
         console.log(friendList)
-        console.log(fetchedConversations)
-        console.log(currentTab)
-    }
-        , [currentTab])
+    }, [friendList])
 
 
     return (

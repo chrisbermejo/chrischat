@@ -115,6 +115,18 @@ module.exports = function setupWebSocket(server) {
             }
         });
 
+        socket.on('sendRemoveFriend', (users, data) => {
+            for (let j = 0; j < users.length; j++) {
+                const receiverSocketIds = onlineUsers[users[j]];
+                if (receiverSocketIds) {
+                    for (let i = 0; i < receiverSocketIds.length; i++) {
+                        const socketId = receiverSocketIds[i];
+                        channel.to(socketId).emit('receiveRemoveFriend', data);
+                    }
+                }
+            }
+        });
+
         socket.on('join', (room) => {
             socket.join(room);
         });

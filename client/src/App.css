@@ -142,8 +142,7 @@ body,
     flex-direction: column;
     gap: 5px;
     overflow: auto;
-    padding: 0 10px;
-    /* padding-top: 50px; */
+    padding: 0 .8rem;
     scrollbar-gutter: stable both-edges;
 }
 

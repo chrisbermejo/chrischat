@@ -39,7 +39,22 @@ export function IncomingFriendRequest({ friend, onDecline, onAccept }) {
     );
 };
 
-export function Friend({ friend }) {
+export function Friend({ type, friendInfo, onRemoveFriend }) {
+
+    let friend = null;
+    const users = {
+        sender: null,
+        receiver: null
+    };
+    if (type === 'receiver') {
+        friend = friendInfo.receiver;
+        users.receiver = friend;
+        users.sender = friendInfo.sender;
+    } else if (type === 'sender') {
+        friend = friendInfo.sender;
+        users.sender = friend;
+        users.receiver = friendInfo.receiver;
+    };
 
     return (
         <div className='friend-list-item'>
@@ -51,7 +66,7 @@ export function Friend({ friend }) {
                 </div>
             </div>
             <div className='friend-list-buttons'>
-                <button className="friend-list-decline-button">
+                <button className="friend-list-decline-button" onClick={(e) => onRemoveFriend(e, users)}>
                     <span className="material-symbols-outlined friend-list-decline-button-icon">person_remove</span>
                 </button>
             </div>

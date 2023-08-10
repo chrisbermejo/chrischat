@@ -6,7 +6,21 @@ const pool = require('../database/PostgreSQL');
 const jwt = require('jsonwebtoken');
 const { v4: uuidv4 } = require('uuid');
 
-require('dotenv').config()
+require('dotenv').config();
+
+let GROUP_PICTURE_INDEX = 0;
+const GROUP_PICTURE_ARRAY = [
+    'https://media.discordapp.net/attachments/1028895750819692616/1139306314288341052/blank-group-picture-gray.png',
+    'https://media.discordapp.net/attachments/1028895750819692616/1139306314019897354/blank-group-picture-red.png',
+    'https://media.discordapp.net/attachments/1028895750819692616/1139306314791669790/blank-group-picture-pink.png',
+    'https://media.discordapp.net/attachments/1028895750819692616/1139306315127193630/blank-group-picture-purple.png',
+    'https://media.discordapp.net/attachments/1028895750819692616/1139306315513090099/blank-group-picture-dark-blue.png',
+    'https://media.discordapp.net/attachments/1028895750819692616/1139306315869585428/blank-group-picture.png',
+    'https://media.discordapp.net/attachments/1028895750819692616/1139306316238704751/blank-group-picture-green-blue.png',
+    'https://media.discordapp.net/attachments/1028895750819692616/1139306316544868433/blank-group-picture-green.png',
+    'https://media.discordapp.net/attachments/1028895750819692616/1139306316913987746/blank-group-picture-yellow.png',
+    'https://media.discordapp.net/attachments/1028895750819692616/1139306317274677399/blank-group-picture-orange.png',
+];
 
 const verifyAccessToken = async (req, res, next) => {
     const accesstoken = req.cookies.access_token;
@@ -133,6 +147,10 @@ router.post('/createConversation', verifyAccessToken, async (req, res) => {
 
     const { name, users } = req.body;
 
+    if (GROUP_PICTURE_INDEX >= 10) {
+        GROUP_PICTURE_INDEX = 0;
+    }
+
     try {
 
         const chatid = uuidv4();
@@ -145,7 +163,7 @@ router.post('/createConversation', verifyAccessToken, async (req, res) => {
         `;
         const insertResults = await pool.query(
             insertUserQuery,
-            [chatid, 'group', name, 'https://images-ext-1.discordapp.net/external/PNLH64xfgvwICQgUWi9Ugld5IIcTgs5fURgaeVjx0g4/https/pbs.twimg.com/media/F15M-yMXoAIcTFz.jpg?width=893&height=583', users.length]
+            [chatid, 'group', name, GROUP_PICTURE_ARRAY[GROUP_PICTURE_INDEX], users.length]
         );
 
         for (const e of users) {
@@ -160,7 +178,7 @@ router.post('/createConversation', verifyAccessToken, async (req, res) => {
 
         const newConv = insertResults.rows[0];
 
-
+        GROUP_PICTURE_INDEX++;
         res.status(201).send({ chat_name: newConv.group_name, chat_picture: newConv.group_picture, chatid: chatid, participants_count: newConv.participants_count, recentmessagedate: newConv.recentmessagedate, type: "group" });
     } catch (error) {
         console.error('Error creating conversation:', error);
@@ -364,6 +382,22 @@ router.post('/api/acceptRequest', verifyAccessToken, async (req, res) => {
     } catch (error) {
         console.error('Error accepting friend request:', error);
         res.status(500).send({ error: 'An error occurred while accepting friend request' });
+    }
+});
+
+router.post('/api/removeFriend', verifyAccessToken, async (req, res) => {
+    try {
+
+        const receiver = req.body.receiver.userid;
+        const sender = req.body.sender.userid;
+        const query = `UPDATE useruserrelationship SET status = 'unfriended' WHERE receiver = $1 AND sender = $2;`;
+        await pool.query(query, [receiver, sender]);
+
+        res.status(200).send({ message: 'Removing friend successfully' });
+
+    } catch (error) {
+        console.error('Error removing friend:', error);
+        res.status(500).send({ error: 'An error occurred while removing friend' });
     }
 });
 

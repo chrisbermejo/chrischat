@@ -45,6 +45,27 @@ export default function FriendFormat({ friend, user, socket }) {
         }
     };
 
+    const handleRemoveFriend = async (e, users) => {
+        e.preventDefault();
+        try {
+            const response = await fetch(`http://localhost:8000/api/removeFriend`, {
+                method: 'POST',
+                credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(users),
+            });
+            if (response.ok) {
+                socket.emit('sendRemoveFriend', [friend.receiver.username, friend.sender.username], users)
+            } else {
+                console.log(`Failed to accept friend request`);
+            }
+        } catch (error) {
+            console.error(`Error accepting friend request: ${error}`);
+        }
+    };
+
     if (friend.receiver.username === user && friend.status === 'pending') {
         return <IncomingFriendRequest friend={friend} onDecline={handleDecline} onAccept={handleAccept} />
     }
@@ -52,9 +73,9 @@ export default function FriendFormat({ friend, user, socket }) {
         return <OutgoingFriendRequest friend={friend} onDecline={handleDecline} />
     }
     else if (friend.receiver.username === user && friend.status === 'accepted') {
-        return <Friend friend={friend.sender} />
+        return <Friend type={'sender'} friendInfo={friend} onRemoveFriend={handleRemoveFriend} />
     }
     else if (friend.sender.username === user && friend.status === 'accepted') {
-        return <Friend friend={friend.receiver} />
+        return <Friend type={'receiver'} friendInfo={friend} onRemoveFriend={handleRemoveFriend} />
     }
 };

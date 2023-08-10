@@ -11,10 +11,9 @@ function Body() {
     const { currentTab, friendList } = useInfo();
 
     const handleInputVisiblity = () => {
-        const boolean = (friendList.some(item =>
-            item.receiver.username === currentTab.conversationName && item.status === 'accepted'
-            || item.sender.username === currentTab.conversationName && item.status === 'accepted'))
-        console.log(boolean);
+        const boolean = (friendList.some(friend =>
+            friend.receiver.username === currentTab.conversationName && friend.status === 'accepted'
+            || friend.sender.username === currentTab.conversationName && friend.status === 'accepted'))
         return boolean;
     }
 
