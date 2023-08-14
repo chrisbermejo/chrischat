@@ -1,17 +1,21 @@
 import useAuth from '../../../hooks/useAuth';
 import useSocket from '../../../hooks/useSocket';
+import useInfo from '../../../hooks/useInfo';
 
 import './CreateGroup.css';
 import FriendList from './FriendList';
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 
 export default function CreateGroup() {
 
     const [selectedFriends, setSelectedFriends] = useState([]);
+    const [filteredFriendList, setFilteredFriendList] = useState([]);
+
     const { user } = useAuth();
     const { socket } = useSocket();
-    const formRef = useRef(null);
+    const { friendList } = useInfo();
 
+    const formRef = useRef(null);
     const handleSubmit = async (e, selectedFriends) => {
         e.preventDefault();
 
@@ -49,6 +53,9 @@ export default function CreateGroup() {
         }
     };
 
+    useEffect(() => {
+        setFilteredFriendList(friendList.filter((friend) => friend.status === 'accepted'));
+    }, []);
 
     return (
         <div className='create-group-form-wrapper'>
@@ -61,8 +68,8 @@ export default function CreateGroup() {
                         <label htmlFor='name' >GROUP NAME</label>
                         <input type='text' name='name' required />
                     </div>
-                    {selectedFriends.length > 1
-                        ? <FriendList setSelectedFriends={setSelectedFriends} />
+                    {filteredFriendList.length > 1
+                        ? <FriendList filteredFriendList={filteredFriendList}  setSelectedFriends={setSelectedFriends} />
                         :
                         <div className='no-friends-condition-div'>
                             Need at least 2 friends to create a group!

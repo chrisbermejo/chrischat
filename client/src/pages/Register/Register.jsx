@@ -6,7 +6,7 @@ import useAuth from '../../hooks/useAuth';
 function Register() {
 
     const { setSocket } = useSocket();
-    const { setUser, setUserProfilePicture, setIsAuthenticated } = useAuth();
+    const { setUser, setUserProfilePicture, setIsAuthenticated, setUserEmail } = useAuth();
 
     const navigate = useNavigate();
 
@@ -35,6 +35,7 @@ function Register() {
                 const data = await response.json();
                 setUser(data.username);
                 setUserProfilePicture(data.picture);
+                setUserEmail(data.email);
                 setIsAuthenticated(true);
                 navigate('/channel');
             } else {

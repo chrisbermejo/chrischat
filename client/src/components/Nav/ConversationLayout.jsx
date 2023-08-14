@@ -17,6 +17,7 @@ export const DmLayout = ({ conversation, currentTab, handleRoomClick }) => {
         <div className={`room ${currentTab.conversationID === conversation.chatid ? 'current-room' : ''}`} key={conversation.name} onClick={() => { handleRoomClick(conversation) }}>
             <div className='conversation-picture-container'>
                 <img className='conversation-picture' src={conversation.chat_picture} alt="room-picture" />
+                <div className={conversation.online ? 'conversation-picture-status active-color-status' : 'conversation-picture-status offline-color-status'}></div>
             </div>
             <div className='room-information'>
                 <div className='room-name'>{conversation.chat_name}</div>

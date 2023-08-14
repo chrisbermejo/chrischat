@@ -59,10 +59,13 @@ export function Friend({ type, friendInfo, onRemoveFriend }) {
     return (
         <div className='friend-list-item'>
             <div className='friend-list-user-info'>
-                <img className='friend-list-item-avatar' src={friend.picture} alt='avatar' />
+                <div className="friend-list-item-avatar-container">
+                    <img className='friend-list-item-avatar' src={friend.picture} alt='avatar' />
+                    <div className={friend.online ? 'friend-list-item-avatar-status active-color-status' : 'friend-list-item-avatar-status offline-color-status'}></div>
+                </div>
                 <div className='friend-list-item-text'>
                     <div className='friend-list-item-username'>{friend.username}</div>
-                    <div className="friend-list-item-type">Friend</div>
+                    <div className="friend-list-item-type">{friend.online ? "Online" : 'Offline'}</div>
                 </div>
             </div>
             <div className='friend-list-buttons'>

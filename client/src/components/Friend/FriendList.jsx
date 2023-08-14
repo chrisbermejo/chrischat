@@ -21,7 +21,7 @@ function FriendList() {
                     <div className='material-symbols-outlined search-bar-icon'>search</div>
                 </div>
             </div>
-            <h5 className='friend-list-selection-header'>ONLINE - {friendList.length}</h5>
+            <h5 className='friend-list-selection-header'>ALL FRIENDS - {friendList.length}</h5>
             <div className='friend-list-item-container'>
                 {friendList.map((friend, index) => (
                     <FriendFormat key={index} friend={friend} user={user} socket={socket} />

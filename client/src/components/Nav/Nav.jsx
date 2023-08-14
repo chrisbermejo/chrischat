@@ -34,9 +34,13 @@ function Nav() {
             <div className='nav-footer'>
                 <div className='user-info-container'>
                     <div className='user-info' onClick={() => openDialog('setting')}>
-                        <img src={userProfilePicture} className='user--avatar' alt={user} />
+                        <div className='user--profile-picture'>
+                            <img src={userProfilePicture} className='user--avatar' alt={user} />
+                            <div className='user--status-active'></div>
+                        </div>
                         <div className='user--name'>
-                            {user}
+                            <span className='user-name-text'>{user}</span>
+                            <span className='user-name-status'>Online</span>
                         </div>
                     </div>
                     <div className='setting-container'>

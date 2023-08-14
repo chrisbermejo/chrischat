@@ -1,10 +1,7 @@
-import useInfo from '../../../hooks/useInfo';
 import useAuth from '../../../hooks/useAuth';
 import './CreateGroup.css';
 
-export default function FriendList({ setSelectedFriends }) {
-
-    const { friendList } = useInfo();
+export default function FriendList({ filteredFriendList, setSelectedFriends }) {
     const { user } = useAuth();
 
     const handleFriendSelection = (username) => {
@@ -17,7 +14,7 @@ export default function FriendList({ setSelectedFriends }) {
 
     return (
         <div className='friend-list-selector'>
-            {friendList.map((friend, index) => (
+            {filteredFriendList.map((friend, index) => (
                 <Friend key={index} friend={friend} user={user} handleFriendSelection={handleFriendSelection} />
             ))}
         </div>
@@ -25,10 +22,10 @@ export default function FriendList({ setSelectedFriends }) {
 };
 
 function Friend({ friend, user, handleFriendSelection }) {
-    if (friend.receiver.username === user && friend.status === 'accepted') {
+    if (friend.receiver.username === user) {
         return <FriendFormat friend={friend.sender} handleFriendSelection={handleFriendSelection} />
     }
-    else if (friend.sender.username === user && friend.status === 'accepted') {
+    else if (friend.sender.username === user) {
         return <FriendFormat friend={friend.receiver} handleFriendSelection={handleFriendSelection} />
     }
 };

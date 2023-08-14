@@ -81,11 +81,30 @@ body,
 
 .user-info {
     display: flex;
-    gap: 10px;
+    gap: 5px;
     align-items: center;
     padding: 0 .2rem;
     padding-right: .6rem;
     cursor: pointer;
+}
+
+.user--name {
+    display: flex;
+    flex-direction: column;
+    max-width: 120px;
+}
+
+.user-name-text {
+    line-height: 1;
+    font-weight: 600;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
+
+.user-name-status {
+    font-size: .65rem;
+    font-weight: 200;
 }
 
 .setting-container {
@@ -414,6 +433,15 @@ body,
 
 .plus-sign {
     font-size: 1rem;
+    width: 22px;
+    font-size: 1rem;
+    display: flex;
+    justify-content: center;
+    border-radius: 50%;
+}
+
+.plus-sign:hover {
+    background-color: rgb(197 197 197 / 16%);
 }
 
 .room {
@@ -449,6 +477,7 @@ body,
 .conversation-picture-container {
     display: flex;
     align-items: center;
+    position: relative;
 }
 
 .conversation-picture {
@@ -488,9 +517,78 @@ body,
     color: rgba(255, 255, 255, 0.425);
 }
 
-.user--avatar {
+.user--profile-picture {
+    display: flex;
+    position: relative;
+    height: 36px;
+    width: 36px;
+    justify-content: center;
+    align-items: center;
+}
+
+.user--status-active {
+    background-color: rgb(16 191 25);
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    border: 3px solid #202224;
+}
+
+.conversation-picture-status {
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    position: absolute;
+    bottom: -3px;
+    right: -3px;
+    border: 3px solid #2b2d30;
+}
+
+.friend-list-item-avatar-container {
     height: 30px;
     width: 30px;
+    position: relative;
+}
+
+.active-color-status {
+    background-color: rgb(16 191 25);
+}
+
+.offline-color-status {
+    background-color: rgb(127, 131, 145);
+}
+
+.friend-list-item:hover .friend-list-item-avatar-status {
+    border: 3px solid #515357;
+}
+
+.friend-list-item-avatar-status {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    position: absolute;
+    bottom: -3px;
+    right: -3px;
+    border: 3px solid #313338
+}
+
+.user--status-offline {
+    background-color: rgb(127, 131, 145);
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    border: 3px solid #202224;
+}
+
+.user--avatar {
+    height: 32px;
+    width: 32px;
     object-fit: cover;
     border-radius: var(--picture);
 }

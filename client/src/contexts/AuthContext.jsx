@@ -11,6 +11,7 @@ export const AuthProvider = ({ children }) => {
     const [isAuthenticated, setIsAuthenticated] = useState(null);
     const [user, setUser] = useState(false);
     const [userProfilePicture, setUserProfilePicture] = useState(false);
+    const [userEmail, setUserEmail] = useState(false);
 
     const logout = async () => {
         try {
@@ -23,8 +24,9 @@ export const AuthProvider = ({ children }) => {
                 },
             });
             disconnectSocket();
-            setUser(null);
-            setUserProfilePicture(null);
+            setUser(false);
+            setUserProfilePicture(false);
+            setUserEmail(false);
             setIsAuthenticated(false);
             navigate('/login');
         } catch (error) {
@@ -48,6 +50,7 @@ export const AuthProvider = ({ children }) => {
                     if (data.isLoggedIn) {
                         setUser(data.username);
                         setUserProfilePicture(data.picture);
+                        setUserEmail(data.email);
                         setIsAuthenticated(data.isLoggedIn);
                         navigate('/channel');
                     } else if (data.isLoggedIn === false) {
@@ -67,7 +70,7 @@ export const AuthProvider = ({ children }) => {
 
 
     return (
-        <AuthContext.Provider value={{ user, logout, userProfilePicture, isAuthenticated, setIsAuthenticated, setUser, setUserProfilePicture }}>
+        <AuthContext.Provider value={{ user, logout, userProfilePicture, userEmail, setUserEmail, isAuthenticated, setIsAuthenticated, setUser, setUserProfilePicture }}>
             {children}
         </AuthContext.Provider>
     );

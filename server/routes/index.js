@@ -35,7 +35,7 @@ router.post('/register', async (req, res) => {
         const insertUserQuery = `
             INSERT INTO users ( userid, username, picture, email, password, createdAt)
             VALUES ($1, $2, $3, $4, $5, NOW())
-            RETURNING id, userid, username, picture
+            RETURNING id, userid, username, picture, email
         `;
 
         const values = [uuidID, username, PROFILE_PICTURE_ARRAY[PROFILE_PICTURE_INDEX], email, password];
@@ -43,7 +43,7 @@ router.post('/register', async (req, res) => {
         const result = await pool.query(insertUserQuery, values);
         const user = result.rows[0];
 
-        const accessToken = jwt.sign({ isLoggedIn: true, username: user.username, picture: user.picture }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '15m' });
+        const accessToken = jwt.sign({ isLoggedIn: true, username: user.username, picture: user.picture, email: user.email }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '15m' });
         const refreshToken = jwt.sign({ userid: user.userid }, process.env.REFRESH_TOKEN_SECRET);
 
         // Set the refresh token as an HttpOnly cookie
@@ -61,7 +61,7 @@ router.post('/register', async (req, res) => {
             maxAge: 60 * 1000 * 15 // 15 minutes (example duration)
         });
         PROFILE_PICTURE_INDEX++;
-        res.status(201).send({ message: 'User created successfully', username: user.username, picture: user.picture });
+        res.status(201).send({ message: 'User created successfully', username: user.username, picture: user.picture, email: user.email });
     } catch (error) {
         res.status(400).send({ error, message: 'User not created' });
     }
@@ -71,14 +71,14 @@ router.post('/login', async (req, res) => {
     const { username, password } = req.body;
     try {
         const selectUserQuery = `
-        SELECT userid, username, picture FROM users
+        SELECT userid, username, email, picture FROM users
         WHERE username = $1 AND password = $2
         LIMIT 1
     `;
         const result = await pool.query(selectUserQuery, [username, password]);
         const user = result.rows[0];
 
-        const accessToken = jwt.sign({ isLoggedIn: true, username: user.username, picture: user.picture }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '15m' });
+        const accessToken = jwt.sign({ isLoggedIn: true, username: user.username, picture: user.picture, email: user.email }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '15m' });
         const refreshToken = jwt.sign({ userid: user.userid }, process.env.REFRESH_TOKEN_SECRET);
 
         // Set the refresh token as an HttpOnly cookie
@@ -97,7 +97,7 @@ router.post('/login', async (req, res) => {
             maxAge: 60 * 1000 * 15 // 15 minutes (example duration)
         });
 
-        return res.status(200).send({ message: 'Login successful', username: user.username, picture: user.picture });
+        return res.status(200).send({ message: 'Login successful', username: user.username, picture: user.picture, email: user.email });
     } catch (error) {
         res.status(400).send({ error, message: 'Unable to login' });
     }

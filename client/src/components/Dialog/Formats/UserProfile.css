@@ -67,3 +67,35 @@
     background-color: #313338;
     border-radius: 50%;
 }
+
+.setting-user-info-container {
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
+
+.setting-user-info-container.username,
+.setting-user-info-container.email {
+    font-weight: 200;
+}
+
+.setting-user-inf-text-email-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem;
+    font-size: .85rem;
+}
+
+.button-email-reveal {
+    background-color: transparent;
+    border: none;
+    color: #00a3f4;
+    padding: 0;
+    display: flex;
+    font-size: .75rem;
+    align-items: center;
+}
+
+.button-email-reveal:hover {
+    text-decoration: underline;
+}

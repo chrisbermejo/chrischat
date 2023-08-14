@@ -85,30 +85,6 @@ export const InfoProvider = ({ children }) => {
         }
     };
 
-    // const fetchProfilePictureForUser = async (userId) => {
-    //     try {
-    //         const response = await fetch(`http://localhost:8000/api/user/${userId}/profilePicture`, {
-    //             method: 'GET',
-    //             credentials: 'include',
-    //             headers: {
-    //                 'Content-Type': 'application/json'
-    //             },
-    //         });
-
-    //         if (response.ok) {
-    //             const data = await response.json();
-    //             setProfilePictures((prevProfilePictures) => ({ ...prevProfilePictures, [userId]: data }));
-    //         } else if (response.status === 401) {
-    //             setIsAuthorized(false);
-    //             console.log('Access Denied: You are not authorized to access this resource.');
-    //         } else {
-    //             console.log(`Failed to fetch profile picture for user: ${userId}`);
-    //         }
-    //     } catch (error) {
-    //         console.error('Error fetching profile picture:', error);
-    //     }
-    // };
-
     const fetchRoom = async () => {
         try {
             const response = await fetch(`http://localhost:8000/api/user/rooms`, {
@@ -122,6 +98,11 @@ export const InfoProvider = ({ children }) => {
                 const data = await response.json();
                 data.sort((a, b) => new Date(b.recentmessagedate) - new Date(a.recentmessagedate));
                 setFetchedConversations(data);
+                data.forEach((room) => {
+                    if (room.type === 'private') {
+                        setProfilePictures((prevProfilePictures) => ({ ...prevProfilePictures, [room.chat_name]: room.chat_picture }));
+                    }
+                });
             } else if (response.status === 401) {
                 setIsAuthorized(false);
                 console.log('Access Denied: You are not authorized to access this resource.');
@@ -199,11 +180,15 @@ export const InfoProvider = ({ children }) => {
                 });
             });
 
-            socket.on('receiveAcceptRequest', (type, data, newChat) => {
+            socket.on('receiveAcceptRequest', (type, data, newChat, onlineStatus) => {
                 setFriendList((prevFriendList) => {
                     return prevFriendList.map((friend) => {
                         if (friend.receiver.userid === data.receiver && friend.sender.userid === data.sender) {
-                            return { ...friend, status: 'accepted' };
+                            if (friend.receiver.username === user) {
+                                return { ...friend, status: 'accepted', sender: { ...friend.sender, online: onlineStatus } };
+                            } else if (friend.sender.username === user) {
+                                return { ...friend, status: 'accepted', receiver: { ...friend.receiver, online: onlineStatus } };
+                            }
                         }
                         return friend;
                     });
@@ -226,6 +211,30 @@ export const InfoProvider = ({ children }) => {
                 });
             });
 
+            socket.on('updateFriendList', (connectedUser, online) => {
+                if (user !== connectedUser.username) {
+                    setFriendList((prevFriendList) => {
+                        return prevFriendList.map((friend) => {
+                            if (friend.receiver.userid === connectedUser.userid || friend.sender.userid === connectedUser.userid) {
+                                if (friend.receiver.userid === connectedUser.userid) {
+                                    return { ...friend, receiver: { ...friend.receiver, online: online } };
+                                } else {
+                                    return { ...friend, sender: { ...friend.sender, online: online } };
+                                }
+                            }
+                            return friend;
+                        });
+                    });
+                    setFetchedConversations((prevFetchedConversations) => {
+                        return prevFetchedConversations.map((friendList) => {
+                            if (friendList.type === 'private' && friendList.chat_name === connectedUser.username) {
+                                return { ...friendList, online: online };
+                            }
+                            return friendList;
+                        });
+                    });
+                }
+            });
         }
 
         return () => {
@@ -254,11 +263,6 @@ export const InfoProvider = ({ children }) => {
             });
         };
     }, [fetchedConversations]);
-
-    useEffect(() => {
-        console.log(friendList)
-    }, [friendList])
-
 
     return (
         <InfoContext.Provider value={{

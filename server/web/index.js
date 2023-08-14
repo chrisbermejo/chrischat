@@ -57,13 +57,15 @@ module.exports = function setupWebSocket(server) {
             return;
         }
 
-        socket.on('logged', (username) => {
+        socket.on('logged', async (username) => {
             if (onlineUsers[username]) {
                 onlineUsers[username].push(socket.id);
             } else {
                 onlineUsers[username] = [socket.id];
+                const updateUserOnlineQuery = `UPDATE users SET online = true WHERE username = $1 RETURNING userid`;
+                const updateOnlineResult = await pool.query(updateUserOnlineQuery, [username]);
+                channel.emit('updateFriendList', { username: username, userid: updateOnlineResult.rows[0].userid }, true);
             }
-            // io.emit('userList', Object.keys(onlineUsers));
             console.log(onlineUsers);
         });
 
@@ -91,16 +93,16 @@ module.exports = function setupWebSocket(server) {
             }
         });
 
-        socket.on('sendAcceptRequest', (type, users, data, requests) => {
-                for (let j = 0; j < users.length; j++) {
-                    const receiverSocketIds = onlineUsers[users[j]];
-                    if (receiverSocketIds) {
-                        for (let i = 0; i < receiverSocketIds.length; i++) {
-                            const socketId = receiverSocketIds[i];
-                            channel.to(socketId).emit('receiveAcceptRequest', type, data, requests[j]);
-                        }
+        socket.on('sendAcceptRequest', (type, users, data, requests, onlineStatus) => {
+            for (let j = 0; j < users.length; j++) {
+                const receiverSocketIds = onlineUsers[users[j]];
+                if (receiverSocketIds) {
+                    for (let i = 0; i < receiverSocketIds.length; i++) {
+                        const socketId = receiverSocketIds[i];
+                        channel.to(socketId).emit('receiveAcceptRequest', type, data, requests[j], onlineStatus[j]);
                     }
                 }
+            }
         });
 
         socket.on('sendConversation', (users, data) => {
@@ -167,14 +169,15 @@ module.exports = function setupWebSocket(server) {
 
         });
 
-        socket.on('disconnect', () => {
-            let disconnectedUsername = null;
+        socket.on('disconnect', async () => {
             for (const username in onlineUsers) {
                 const index = onlineUsers[username].indexOf(socket.id);
                 if (index !== -1) {
-                    disconnectedUsername = username;
                     onlineUsers[username].splice(index, 1);
                     if (onlineUsers[username].length === 0) {
+                        const updateUserOnlineQuery = `UPDATE users SET online = false WHERE username = $1 RETURNING userid`;
+                        const updateOnlineResult = await pool.query(updateUserOnlineQuery, [username]);
+                        channel.emit('updateFriendList', { username: username, userid: updateOnlineResult.rows[0].userid }, false);
                         delete onlineUsers[username];
                     }
                     break;
