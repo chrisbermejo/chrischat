@@ -6,19 +6,24 @@ import { AuthProvider } from './contexts/AuthContext';
 import { InfoProvider } from './contexts/InfoContext';
 import Routes from './Routes';
 import reportWebVitals from './reportWebVitals';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 
+const queryClient = new QueryClient()
 const root = ReactDOM.createRoot(document.getElementById('root'));
+
 root.render(
     <React.StrictMode>
-        <BrowserRouter >
-            <AuthProvider>
-                <SocketProvider>
-                    <InfoProvider>
-                        <Routes />
-                    </InfoProvider>
-                </SocketProvider>
-            </AuthProvider>
-        </BrowserRouter >
+        <QueryClientProvider client={queryClient}>
+            <BrowserRouter >
+                <AuthProvider>
+                    <SocketProvider>
+                        <InfoProvider>
+                            <Routes />
+                        </InfoProvider>
+                    </SocketProvider>
+                </AuthProvider>
+            </BrowserRouter >
+        </QueryClientProvider>
     </React.StrictMode>
 );
 

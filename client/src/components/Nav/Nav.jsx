@@ -1,11 +1,11 @@
 import useAuth from '../../hooks/useAuth';
 import useInfo from '../../hooks/useInfo';
-import { GroupLayout, DmLayout } from './ConversationLayout';
+import ConversationList from './ConversationList';
 
 function Nav() {
 
     const { user, userProfilePicture } = useAuth();
-    const { fetchedConversations, currentTab, handleRoomClick, openDialog } = useInfo();
+    const { currentTab, handleRoomClick, openDialog } = useInfo();
 
     return (
         <div className='Nav'>
@@ -24,13 +24,7 @@ function Nav() {
                 <span className='rooms-title-text'>DIRECT MESSAGES</span>
                 <span className='rooms-title-text plus-sign' onClick={() => openDialog('create-dm')}>+</span>
             </div>
-            <div className='rooms'>
-                {fetchedConversations.map((conversation, index) => (
-                    conversation.type === "group"
-                        ? <GroupLayout key={`Conversation${index}`} conversation={conversation} currentTab={currentTab} handleRoomClick={handleRoomClick} />
-                        : <DmLayout key={`Conversation${index}`} conversation={conversation} currentTab={currentTab} handleRoomClick={handleRoomClick} />
-                ))}
-            </div>
+            <ConversationList />
             <div className='nav-footer'>
                 <div className='user-info-container'>
                     <div className='user-info' onClick={() => openDialog('setting')}>

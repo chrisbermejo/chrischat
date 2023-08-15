@@ -375,6 +375,7 @@ router.post('/api/acceptRequest', verifyAccessToken, async (req, res) => {
                 chat_picture: resultSenderID.rows[0].picture,
                 participants_count: 2,
                 recentmessagedate: insertResults.rows[0].recentmessagedate,
+                online: resultSenderID.rows[0].online,
             }
 
             const forSender = {
@@ -384,6 +385,7 @@ router.post('/api/acceptRequest', verifyAccessToken, async (req, res) => {
                 chat_picture: resultReceiverID.rows[0].picture,
                 participants_count: 2,
                 recentmessagedate: insertResults.rows[0].recentmessagedate,
+                online: resultReceiverID.rows[0].online,
             }
             res.status(200).send({
                 newChat: true,

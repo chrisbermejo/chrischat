@@ -1,6 +1,7 @@
 import React, { createContext, useEffect, useState, useRef } from 'react';
 import useSocket from '../hooks/useSocket';
 import useAuth from '../hooks/useAuth';
+import { useQuery } from '@tanstack/react-query'
 
 export const InfoContext = createContext();
 
@@ -138,6 +139,16 @@ export const InfoProvider = ({ children }) => {
         }
     };
 
+    const fetchingRoomAndFriendList = useQuery({
+        queryKey: ['fetchingRoomAndFriendList'],
+        queryFn: async () => {
+            fetchRoom();
+            fetchFriendList();
+            return true;
+        },
+        enabled: false,
+    })
+
     const handleRoomClick = async (tab) => {
         if (isAuthenticated && tab.type === 'friend') {
             setCurrentTab((prevCurrentTab) => ({ ...prevCurrentTab, type: 'friend', conversationID: null, conversationName: null, conversationPicture: null }));
@@ -249,8 +260,7 @@ export const InfoProvider = ({ children }) => {
     // eslint-disable-next-line
     useEffect(() => {
         if (isAuthenticated && user && socket) {
-            fetchRoom();
-            fetchFriendList();
+            fetchingRoomAndFriendList.refetch();
         };
         // eslint-disable-next-line
     }, [isAuthenticated, user, socket]);
@@ -279,7 +289,6 @@ export const InfoProvider = ({ children }) => {
             chatMessage,
             sendMessage,
             fetchRoomMessages,
-            fetchRoom,
             handleRoomClick,
             friendList,
             setFriendList,
@@ -289,6 +298,7 @@ export const InfoProvider = ({ children }) => {
             dialogType,
             setDialogType,
             openDialog,
+            fetchingRoomAndFriendList
         }}>
             {children}
         </InfoContext.Provider>
