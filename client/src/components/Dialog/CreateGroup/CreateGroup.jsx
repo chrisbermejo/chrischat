@@ -40,7 +40,6 @@ export default function CreateGroup() {
                 });
 
                 if (response.ok) {
-                    console.log(updatedFormData.users)
                     formRef.current.reset();
                     const data = await response.json();
                     socket.emit('sendConversation', updatedFormData.users, data);
@@ -69,7 +68,7 @@ export default function CreateGroup() {
                         <input type='text' name='name' required />
                     </div>
                     {filteredFriendList.length > 1
-                        ? <FriendList filteredFriendList={filteredFriendList}  setSelectedFriends={setSelectedFriends} />
+                        ? <FriendList filteredFriendList={filteredFriendList} setSelectedFriends={setSelectedFriends} />
                         :
                         <div className='no-friends-condition-div'>
                             Need at least 2 friends to create a group!

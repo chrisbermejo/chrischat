@@ -7,10 +7,15 @@ function ConversationList() {
 
     if (fetchingRoomAndFriendList.isLoading) {
         return (
-            <div className='rooms'>
-                <div className='room'>
-                    Loading....
-                </div>
+            <div className='rooms skeleton-rooms'>
+                <div className='room skeleton-room'></div>
+                <div className='room skeleton-room'></div>
+                <div className='room skeleton-room'></div>
+                <div className='room skeleton-room'></div>
+                <div className='room skeleton-room'></div>
+                <div className='room skeleton-room'></div>
+                <div className='room skeleton-room'></div>
+                <div className='room skeleton-room'></div>
             </div >
         )
     };

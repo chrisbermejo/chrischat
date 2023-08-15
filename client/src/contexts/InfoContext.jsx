@@ -142,12 +142,13 @@ export const InfoProvider = ({ children }) => {
     const fetchingRoomAndFriendList = useQuery({
         queryKey: ['fetchingRoomAndFriendList'],
         queryFn: async () => {
+            await new Promise(resolve => setTimeout(resolve, 1000));
             fetchRoom();
             fetchFriendList();
             return true;
         },
         enabled: false,
-    })
+    });
 
     const handleRoomClick = async (tab) => {
         if (isAuthenticated && tab.type === 'friend') {

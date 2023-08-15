@@ -1,34 +1,11 @@
-import useAuth from '../../hooks/useAuth';
 import useInfo from '../../hooks/useInfo';
-import useSocket from '../../hooks/useSocket';
 import AddFriend from './AddFriend';
-import FriendFormat from '../Friend/FriendFormat';
+
+import FriendListMap from './FriendListMap';
 
 function FriendList() {
 
-    const { socket } = useSocket();
-    const { friendList, addFriendVisible, fetchingRoomAndFriendList } = useInfo();
-    const { user } = useAuth();
-
-    if (fetchingRoomAndFriendList.isLoading) {
-        return (
-            <div className='friend-tab'>
-                {addFriendVisible && <AddFriend />}
-                <div className='friend-list-header'>
-                    <div className='friend-list-search-bar-container'>
-                        <div className='friend-list-search-bar-wrapper'>
-                            <input className='friend-list-search-bar' type='text' placeholder='Search' />
-                        </div>
-                        <div className='material-symbols-outlined search-bar-icon'>search</div>
-                    </div>
-                </div>
-                <h5 className='friend-list-selection-header'>ALL FRIENDS - </h5>
-                <div>
-                    <h5 className='friend-list-selection-header'>Loading.....</h5>
-                </div>
-            </div>
-        )
-    }
+    const { friendList, addFriendVisible } = useInfo();
 
     return (
         <div className='friend-tab'>
@@ -41,12 +18,8 @@ function FriendList() {
                     <div className='material-symbols-outlined search-bar-icon'>search</div>
                 </div>
             </div>
-            <h5 className='friend-list-selection-header'>ALL FRIENDS - {friendList.length}</h5>
-            <div className='friend-list-item-container'>
-                {friendList.map((friend, index) => (
-                    <FriendFormat key={index} friend={friend} user={user} socket={socket} />
-                ))}
-            </div>
+            <h5 className='friend-list-selection-header'>ALL FRIENDS - {!friendList.length ? '' : friendList.length}</h5>
+            <FriendListMap />
             <div className='friend-list-footer'></div>
         </div>
     )

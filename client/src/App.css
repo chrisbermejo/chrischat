@@ -896,3 +896,38 @@ body,
 .setting-dialog-close-button-container span {
     font-family: 'Material Symbols Outlined';
 }
+
+.skeleton-room {
+    margin: .2rem .5rem;
+    padding: 0;
+    background-color: rgba(197, 197, 197, 0.014);
+}
+
+.skeleton-friend-list-item {
+    border: none;
+    background-color: rgba(255, 255, 255, 0.02);
+    border-radius: 4px;
+}
+
+.skeleton-box {
+    height: 34px;
+    width: 100%;
+}
+
+.friend-list-item.skeleton-friend-list-item:hover {
+    background-color: none;
+    border-top: none;
+    margin: 0 1.8rem;
+    padding: .8rem 0rem;
+}
+
+.skeleton-friend-list-item-container {
+    display: flex;
+    flex-direction: column;
+    gap: .2rem;
+    overflow: hidden;
+}
+
+.skeleton-rooms {
+    overflow: hidden;
+}
