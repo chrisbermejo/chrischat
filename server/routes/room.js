@@ -34,12 +34,41 @@ const verifyAccessToken = async (req, res, next) => {
         if (accesstoken) { // Verify the access token and proceed with the request if valid
             const decoded = jwt.verify(accesstoken, process.env.ACCESS_TOKEN_SECRET);
             const selectUserQuery = `
-                SELECT username, picture, email FROM users
+                SELECT username, picture, email, userid FROM users
                 WHERE username = $1
                 LIMIT 1
             `;
+
             const result = await pool.query(selectUserQuery, [decoded.username]);
-            req.user = { isLoggedIn: true, username: result.rows[0].username, picture: result.rows[0].picture, email: result.rows[0].email }
+            const user = result.rows[0];
+
+            const selectUserUserRelationshipCountQuery = `
+                SELECT COUNT(*) AS userUserRelationshipCount
+                FROM useruserrelationship
+                WHERE sender = $1 OR receiver = $1
+            `;
+
+            const selectUserChatRelationshipCountQuery = `
+                SELECT COUNT(*) AS userChatRelationshipCount
+                FROM userchatrelationship
+                WHERE userid = $1
+            `;
+
+            const userUserRelationshipResult = await pool.query(selectUserUserRelationshipCountQuery, [user.userid]);
+            const userChatRelationshipResult = await pool.query(selectUserChatRelationshipCountQuery, [user.userid]);
+
+            const userUserRelationshipCount = userUserRelationshipResult.rows[0].useruserrelationshipcount;
+            const userChatRelationshipCount = userChatRelationshipResult.rows[0].userchatrelationshipcount;
+
+            req.user = {
+                isLoggedIn: true,
+                username: user.username,
+                picture: user.picture,
+                email: user.email,
+                FriendListCount: userUserRelationshipCount,
+                ConversationCount: userChatRelationshipCount
+            };
+
             return next();
         } else {
             // If the access token is not present, attempt to refresh it using the refresh token
@@ -52,6 +81,24 @@ const verifyAccessToken = async (req, res, next) => {
             `;
             const result = await pool.query(selectUserQuery, [decodedRefreshToken.userid]);
             const user = result.rows[0];
+
+            const selectUserUserRelationshipCountQuery = `
+                SELECT COUNT(*) AS userUserRelationshipCount
+                FROM useruserrelationship
+                WHERE sender = $1 OR receiver = $1
+            `;
+
+            const selectUserChatRelationshipCountQuery = `
+                SELECT COUNT(*) AS userChatRelationshipCount
+                FROM userchatrelationship
+                WHERE userid = $1
+            `;
+
+            const userUserRelationshipResult = await pool.query(selectUserUserRelationshipCountQuery, [decodedRefreshToken.userid]);
+            const userChatRelationshipResult = await pool.query(selectUserChatRelationshipCountQuery, [decodedRefreshToken.userid]);
+            const userUserRelationshipCount = userUserRelationshipResult.rows[0].useruserrelationshipcount;
+            const userChatRelationshipCount = userChatRelationshipResult.rows[0].userchatrelationshipcount;
+
             // Generate a new access token
             const newAccessToken = jwt.sign({ isLoggedIn: true, username: user.username, picture: user.picture }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '15m' });
             // Set the new access token as an HttpOnly cookie
@@ -62,7 +109,14 @@ const verifyAccessToken = async (req, res, next) => {
                 maxAge: 60 * 1000 * 15 // 15 minutes (example duration)
             });
             // Proceed with the request after refreshing the access token
-            req.user = { isLoggedIn: true, username: user.username, picture: user.picture, email: user.email };
+            req.user = {
+                isLoggedIn: true,
+                username: user.username,
+                picture: user.picture,
+                email: user.email,
+                FriendListCount: userUserRelationshipCount,
+                ConversationCount: userChatRelationshipCount
+            };
             return next();
         }
     } catch (error) {
@@ -102,55 +156,75 @@ router.get('/api/room/:roomID/messages', verifyAccessToken, async (req, res) => 
 
 router.get('/api/user/rooms', verifyAccessToken, async (req, res) => {
     const selectChatQuery = `
-        SELECT DISTINCT
-            c.chatid,
-            c.type,
-            CASE
-                WHEN c.type = 'group' THEN c.group_name
-                WHEN c.type = 'private' THEN
-                    CASE
-                        WHEN u.username = $1 THEN u2.username
-                        ELSE u.username
-                    END
-                ELSE NULL
-            END AS chat_name,
-            CASE
-                WHEN c.type = 'group' THEN c.group_picture
-                WHEN c.type = 'private' THEN
-                    CASE
-                        WHEN u.username = $1 THEN u2.picture
-                        ELSE u.picture
-                    END
-                ELSE NULL
-            END AS chat_picture,
-            CASE
-                WHEN c.type = 'group' THEN NULL
-                WHEN c.type = 'private' THEN
-                    CASE
-                        WHEN u.username = $1 THEN u2.online
-                        ELSE u.online
-                    END
-                ELSE NULL
-            END AS online,
-            c.participants_count,
-            c.recentmessagedate
-        FROM chats AS c
-        JOIN userchatrelationship AS ucr ON c.chatid = ucr.chatid
-        JOIN users AS u ON ucr.userid = u.userid
-        LEFT JOIN userchatrelationship AS ucr2 ON c.chatid = ucr2.chatid AND ucr.userid != ucr2.userid
-        LEFT JOIN users AS u2 ON ucr2.userid = u2.userid
-        WHERE u.username = $1;
+        SELECT
+            chatid,
+            type,
+            chat_name,
+            chat_picture,
+            online,
+            participants_count,
+            recentmessagedate,
+            ARRAY_AGG(DISTINCT username) AS participants
+        FROM (
+            SELECT
+                c.chatid,
+                c.type,
+                CASE
+                    WHEN c.type = 'group' THEN c.group_name
+                    WHEN c.type = 'private' THEN
+                        CASE
+                            WHEN u.username = $1 THEN u2.username
+                            ELSE u.username
+                        END
+                    ELSE NULL
+                END AS chat_name,
+                CASE
+                    WHEN c.type = 'group' THEN c.group_picture
+                    WHEN c.type = 'private' THEN
+                        CASE
+                            WHEN u.username = $1 THEN u2.picture
+                            ELSE u.picture
+                        END
+                    ELSE NULL
+                END AS chat_picture,
+                CASE
+                    WHEN c.type = 'group' THEN NULL
+                    WHEN c.type = 'private' THEN
+                        CASE
+                            WHEN u.username = $1 THEN u2.online
+                            ELSE u.online
+                        END
+                    ELSE NULL
+                END AS online,
+                c.participants_count,
+                c.recentmessagedate,
+                up.username
+            FROM chats AS c
+            JOIN userchatrelationship AS ucr ON c.chatid = ucr.chatid
+            JOIN users AS u ON ucr.userid = u.userid
+            LEFT JOIN userchatrelationship AS ucr2 ON c.chatid = ucr2.chatid AND ucr.userid != ucr2.userid
+            LEFT JOIN users AS u2 ON ucr2.userid = u2.userid
+            LEFT JOIN userchatrelationship AS ucr_participants ON c.chatid = ucr_participants.chatid
+            LEFT JOIN users AS up ON ucr_participants.userid = up.userid
+            WHERE u.username = $1
+        ) AS subquery
+        GROUP BY chatid, type, chat_name, chat_picture, online, participants_count, recentmessagedate;
     `;
     const result = await pool.query(selectChatQuery, [req.user.username]);
     const conversations = result.rows;
     res.json(conversations);
 });
 
-// router.get('/api/user/:userID/profilePicture', verifyAccessToken, async (req, res) => {
-//     const userID = req.params.userID;
-//     const user = await User.findOne({ _id: userID });
-//     res.json(user.picture);
-// });
+router.get('/api/user/:username/profilePicture', verifyAccessToken, async (req, res) => {
+    const userID = req.params.username;
+    const selectPictureQuery = `
+            SELECT picture FROM users
+            WHERE username = $1
+        `;
+    const result = await pool.query(selectPictureQuery, [userID]);
+    userPicture = result.rows[0].picture;
+    res.json(userPicture);
+});
 
 router.post('/createConversation', verifyAccessToken, async (req, res) => {
 
@@ -353,8 +427,6 @@ router.post('/api/acceptRequest', verifyAccessToken, async (req, res) => {
                 insertUserQuery,
                 [chatid, 'private', 2]
             );
-
-            console.log('1', insertResults.rows[0]);
 
             const insertUserChatQuery = `
                 INSERT INTO userchatrelationship ( userid, chatid)

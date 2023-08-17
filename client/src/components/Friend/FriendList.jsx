@@ -5,7 +5,7 @@ import FriendListMap from './FriendListMap';
 
 function FriendList() {
 
-    const { friendList, addFriendVisible } = useInfo();
+    const { friendList, addFriendVisible, fetchingRoomAndFriendList } = useInfo();
 
     return (
         <div className='friend-tab'>
@@ -18,7 +18,14 @@ function FriendList() {
                     <div className='material-symbols-outlined search-bar-icon'>search</div>
                 </div>
             </div>
-            <h5 className='friend-list-selection-header'>ALL FRIENDS - {!friendList.length ? '' : friendList.length}</h5>
+            <h5 className='friend-list-selection-header'>
+                ALL FRIENDS - {
+                    fetchingRoomAndFriendList.isLoading === true ?
+                        ' ' :
+                        fetchingRoomAndFriendList.isSuccess === true ?
+                            friendList.length : 0
+                }
+            </h5>
             <FriendListMap />
             <div className='friend-list-footer'></div>
         </div>

@@ -25,6 +25,7 @@ export const InfoProvider = ({ children }) => {
         conversationID: null,
         conversationName: null,
         conversationPicture: null,
+        participantsList: null
     });
     //Boolean for real time message 
     const [roomClicked, setRoomClicked] = useState({});
@@ -65,6 +66,7 @@ export const InfoProvider = ({ children }) => {
 
     const fetchRoomMessages = async (chatid, date) => {
         try {
+            console.log('fetching...', chatid)
             const response = await fetch((!date ? `http://localhost:8000/api/room/${chatid}/messages` : `http://localhost:8000/api/room/${chatid}/messages/?date=${date}`), {
                 method: 'GET',
                 credentials: 'include',
@@ -139,24 +141,59 @@ export const InfoProvider = ({ children }) => {
         }
     };
 
+    const fetchProfilePictureForUser = async (username) => {
+        try {
+            const response = await fetch(`http://localhost:8000/api/user/${username}/profilePicture`);
+
+            if (response.ok) {
+                const data = await response.json();
+                setProfilePictures((prevProfilePictures) => ({ ...prevProfilePictures, [username]: data }));
+            } else {
+                console.log(`Failed to fetch profile picture for user: ${username}`);
+            }
+        } catch (error) {
+            console.error('Error fetching profile picture:', error);
+        }
+    };
+
+    const fetchParticipantsProfilePictures = async (participantsList) => {
+        if (currentTab.type === 'group') {
+            for (const username in participantsList) {
+                if (participantsList[username] !== user && !profilePictures[participantsList[username]]) {
+                    await fetchProfilePictureForUser(participantsList[username]);
+                }
+            }
+        }
+    };
+
     const fetchingRoomAndFriendList = useQuery({
-        queryKey: ['fetchingRoomAndFriendList'],
+        queryKey: ['fetchingRoomAndFriendList', user],
         queryFn: async () => {
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            fetchRoom();
-            fetchFriendList();
+            await fetchRoom();
+            await fetchFriendList();
             return true;
         },
+        refetchOnWindowFocus: false,
         enabled: false,
+    });
+
+    const fetchingRoomMessages = useQuery({
+        queryKey: ['fetchingRoomMessages', currentTab.conversationID],
+        queryFn: async () => {
+            await fetchRoomMessages(currentTab.conversationID, conversationMessages[currentTab.conversationID]?.[0]?.date);
+            await fetchParticipantsProfilePictures(currentTab.participantsList);
+            return true;
+        },
+        refetchOnWindowFocus: false,
+        enabled: currentTab.conversationID !== null && (!conversationMessages[currentTab.conversationID] || !(roomClicked[currentTab.conversationID] || false)),
     });
 
     const handleRoomClick = async (tab) => {
         if (isAuthenticated && tab.type === 'friend') {
-            setCurrentTab((prevCurrentTab) => ({ ...prevCurrentTab, type: 'friend', conversationID: null, conversationName: null, conversationPicture: null }));
+            setCurrentTab((prevCurrentTab) => ({ ...prevCurrentTab, type: 'friend', conversationID: null, conversationName: null, conversationPicture: null, participantsList: null }));
         } else if (isAuthenticated && ((tab.type === 'group') || (tab.type === 'private'))) {
-            setCurrentTab((prevCurrentTab) => ({ ...prevCurrentTab, type: tab.type, conversationID: tab.chatid, conversationName: tab.chat_name, conversationPicture: tab.chat_picture }));
+            setCurrentTab((prevCurrentTab) => ({ ...prevCurrentTab, type: tab.type, conversationID: tab.chatid, conversationName: tab.chat_name, conversationPicture: tab.chat_picture, participantsList: tab.participants }));
             if (!conversationMessages[tab.chatid] || !(roomClicked[tab.chatid] || false)) {
-                await fetchRoomMessages(tab.chatid, conversationMessages[tab.chatid]?.[0]?.date);
                 setRoomClicked((prev) => ({ ...prev, [tab.chatid]: true, }));
             }
         }
@@ -299,7 +336,8 @@ export const InfoProvider = ({ children }) => {
             dialogType,
             setDialogType,
             openDialog,
-            fetchingRoomAndFriendList
+            fetchingRoomAndFriendList,
+            fetchingRoomMessages
         }}>
             {children}
         </InfoContext.Provider>

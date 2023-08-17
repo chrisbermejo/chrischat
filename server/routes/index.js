@@ -78,6 +78,33 @@ router.post('/login', async (req, res) => {
         const result = await pool.query(selectUserQuery, [username, password]);
         const user = result.rows[0];
 
+        const selectUserUserRelationshipCountQuery = `
+                SELECT COUNT(*) AS userUserRelationshipCount
+                FROM useruserrelationship
+                WHERE sender = $1 OR receiver = $1
+            `;
+
+        const selectUserChatRelationshipCountQuery = `
+                SELECT COUNT(*) AS userChatRelationshipCount
+                FROM userchatrelationship
+                WHERE userid = $1
+            `;
+
+        const userUserRelationshipResult = await pool.query(selectUserUserRelationshipCountQuery, [user.userid]);
+        const userChatRelationshipResult = await pool.query(selectUserChatRelationshipCountQuery, [user.userid]);
+
+        const userUserRelationshipCount = userUserRelationshipResult.rows[0].useruserrelationshipcount;
+        const userChatRelationshipCount = userChatRelationshipResult.rows[0].userchatrelationshipcount;
+
+        req.user = {
+            isLoggedIn: true,
+            username: user.username,
+            picture: user.picture,
+            email: user.email,
+            FriendListCount: userUserRelationshipCount,
+            ConversationCount: userChatRelationshipCount
+        };
+
         const accessToken = jwt.sign({ isLoggedIn: true, username: user.username, picture: user.picture, email: user.email }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '15m' });
         const refreshToken = jwt.sign({ userid: user.userid }, process.env.REFRESH_TOKEN_SECRET);
 
@@ -96,8 +123,7 @@ router.post('/login', async (req, res) => {
             sameSite: 'lax',
             maxAge: 60 * 1000 * 15 // 15 minutes (example duration)
         });
-
-        return res.status(200).send({ message: 'Login successful', username: user.username, picture: user.picture, email: user.email });
+        return res.status(200).send(req.user);
     } catch (error) {
         res.status(400).send({ error, message: 'Unable to login' });
     }

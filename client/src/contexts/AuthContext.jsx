@@ -12,6 +12,10 @@ export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(false);
     const [userProfilePicture, setUserProfilePicture] = useState(false);
     const [userEmail, setUserEmail] = useState(false);
+    const [rowCount, setRowCount] = useState({
+        FriendListCount: 0,
+        ConversationCount: 0
+    });
 
     const logout = async () => {
         try {
@@ -52,6 +56,10 @@ export const AuthProvider = ({ children }) => {
                         setUserProfilePicture(data.picture);
                         setUserEmail(data.email);
                         setIsAuthenticated(data.isLoggedIn);
+                        setRowCount({
+                            FriendListCount: data.FriendListCount,
+                            ConversationCount: data.ConversationCount
+                        });
                         navigate('/channel');
                     } else if (data.isLoggedIn === false) {
                         setIsAuthenticated(data.isLoggedIn);
@@ -70,7 +78,7 @@ export const AuthProvider = ({ children }) => {
 
 
     return (
-        <AuthContext.Provider value={{ user, logout, userProfilePicture, userEmail, setUserEmail, isAuthenticated, setIsAuthenticated, setUser, setUserProfilePicture }}>
+        <AuthContext.Provider value={{ user, logout, rowCount, setRowCount, userProfilePicture, userEmail, setUserEmail, isAuthenticated, setIsAuthenticated, setUser, setUserProfilePicture }}>
             {children}
         </AuthContext.Provider>
     );

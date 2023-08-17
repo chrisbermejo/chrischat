@@ -1,23 +1,22 @@
 import useInfo from '../../hooks/useInfo';
+import useAuth from '../../hooks/useAuth';
 import { GroupLayout, DmLayout } from './ConversationLayout';
 
 function ConversationList() {
 
     const { fetchedConversations, currentTab, handleRoomClick, fetchingRoomAndFriendList } = useInfo();
+    const { rowCount } = useAuth();
 
     if (fetchingRoomAndFriendList.isLoading) {
+        const skeletonItems = Array.from({ length: (rowCount.ConversationCount || 0) }, (_, index) => (
+            <div key={index} className='room skeleton-room'></div>
+        ));
+
         return (
             <div className='rooms skeleton-rooms'>
-                <div className='room skeleton-room'></div>
-                <div className='room skeleton-room'></div>
-                <div className='room skeleton-room'></div>
-                <div className='room skeleton-room'></div>
-                <div className='room skeleton-room'></div>
-                <div className='room skeleton-room'></div>
-                <div className='room skeleton-room'></div>
-                <div className='room skeleton-room'></div>
-            </div >
-        )
+                {skeletonItems}
+            </div>
+        );
     };
 
     return (
