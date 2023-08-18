@@ -42,7 +42,7 @@ module.exports = function setupWebSocket(server) {
 
         if (accessToken) {
             try {
-                const decoded = verifyToken(accessToken, process.env.ACCESS_TOKEN_SECRET)
+                const decoded = jwt.verify(accessToken, process.env.ACCESS_TOKEN_SECRET);
                 console.log(`User ${decoded.username} connected. ID ${socket.id}`);
             } catch (error) {
                 console.log('Token validation error:', error.message);
