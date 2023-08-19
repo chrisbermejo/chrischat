@@ -5,8 +5,6 @@ const { instrument } = require('@socket.io/admin-ui');
 
 const pool = require('../database/PostgreSQL');
 
-const verifyToken = require('../verifyToken');
-
 function getAccessTokenFromCookies(cookies) {
     if (!cookies) {
         return null;
