@@ -4,6 +4,7 @@ const { Server } = require('socket.io');
 const { instrument } = require('@socket.io/admin-ui');
 
 const pool = require('../database/PostgreSQL');
+const jwt = require('jsonwebtoken');
 
 function getAccessTokenFromCookies(cookies) {
     if (!cookies) {

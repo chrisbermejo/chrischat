@@ -1,4 +1,5 @@
 const express = require('express');
+const bcrypt = require('bcrypt');
 const router = express.Router();
 
 const pool = require('../database/PostgreSQL');
@@ -7,6 +8,8 @@ const { v4: uuidv4 } = require('uuid');
 require('dotenv').config();
 
 const jwt = require('jsonwebtoken');
+
+const HASH_COUNT = 2;
 
 let PROFILE_PICTURE_INDEX = 0;
 const PROFILE_PICTURE_ARRAY = [
@@ -25,6 +28,30 @@ const PROFILE_PICTURE_ARRAY = [
 router.post('/register', async (req, res) => {
     const { username, email, password } = req.body;
 
+    const checkUsernameQuery = `
+            SELECT COUNT(*) FROM users WHERE username = $1
+        `;
+
+    const usernameResult = await pool.query(checkUsernameQuery, [username]);
+    const usernameTaken = usernameResult.rows[0].count > 0;
+
+    if (usernameTaken) {
+        return res.status(409).send({ message: 'Username already taken' });
+    }
+    // Check if email is taken
+    const checkEmailQuery = `
+            SELECT COUNT(*) FROM users WHERE email = $1
+        `;
+
+    const emailResult = await pool.query(checkEmailQuery, [email]);
+    const emailTaken = emailResult.rows[0].count > 0;
+
+    if (emailTaken) {
+        return res.status(409).send({ message: 'Email already registered' });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, HASH_COUNT); // 10 is the number of rounds for hashing
+
     const uuidID = uuidv4();
 
     if (PROFILE_PICTURE_INDEX >= 10) {
@@ -38,7 +65,7 @@ router.post('/register', async (req, res) => {
             RETURNING id, userid, username, picture, email
         `;
 
-        const values = [uuidID, username, PROFILE_PICTURE_ARRAY[PROFILE_PICTURE_INDEX], email, password];
+        const values = [uuidID, username, PROFILE_PICTURE_ARRAY[PROFILE_PICTURE_INDEX], email, hashedPassword];
 
         const result = await pool.query(insertUserQuery, values);
         const user = result.rows[0];
@@ -61,22 +88,34 @@ router.post('/register', async (req, res) => {
             maxAge: 60 * 1000 * 15 // 15 minutes (example duration)
         });
         PROFILE_PICTURE_INDEX++;
-        res.status(201).send({ message: 'User created successfully', username: user.username, picture: user.picture, email: user.email });
+        return res.status(201).send({ message: 'User created successfully', username: user.username, picture: user.picture, email: user.email });
     } catch (error) {
-        res.status(400).send({ error, message: 'User not created' });
+        return res.status(400).send({ error, message: 'User not created' });
     }
 });
 
 router.post('/login', async (req, res) => {
     const { username, password } = req.body;
+
     try {
+
         const selectUserQuery = `
-        SELECT userid, username, email, picture FROM users
-        WHERE username = $1 AND password = $2
-        LIMIT 1
-    `;
-        const result = await pool.query(selectUserQuery, [username, password]);
+            SELECT userid, username, email, password, picture FROM users
+            WHERE username = $1
+        `;
+
+        const result = await pool.query(selectUserQuery, [username]);
         const user = result.rows[0];
+
+        if (!user) {
+            return res.status(401).send({ message: 'Invalid credentials' });
+        }
+        console.log(user)
+        const passwordMatch = await bcrypt.compare(password, user.password);
+
+        if (!passwordMatch) {
+            return res.status(401).send({ message: 'Invalid credentials' });
+        }
 
         const selectUserUserRelationshipCountQuery = `
                 SELECT COUNT(*) AS userUserRelationshipCount
@@ -125,7 +164,7 @@ router.post('/login', async (req, res) => {
         });
         return res.status(200).send(req.user);
     } catch (error) {
-        res.status(400).send({ error, message: 'Unable to login' });
+        return res.status(400).send({ error, message: 'Unable to login' });
     }
 });
 
