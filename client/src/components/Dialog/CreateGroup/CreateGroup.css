@@ -5,13 +5,16 @@
     max-height: 214px;
     overflow-y: auto;
     overflow-x: hidden;
-    margin-bottom: 1.5rem;
+    margin-bottom: .5rem;
+    padding: .5rem;
+    border: 1px solid transparent;
 }
 
 .friend-list-selector-item {
     display: flex;
     gap: .5rem;
     width: 100%;
+    overflow-x: hidden;
 }
 
 .create-group-form {
@@ -40,7 +43,7 @@
     flex-direction: column;
 }
 
-.create-group-form-input label {
+.create-group-form label {
     font-size: .8rem;
     font-weight: 800;
     color: rgba(255, 255, 255, 0.774);
@@ -55,6 +58,7 @@
     color: white;
     display: flex;
     justify-content: center;
+    border: 1px solid transparent
 }
 
 .create-group-form-input {
@@ -83,4 +87,12 @@
     display: flex;
     color: white;
     justify-content: center;
+}
+
+.create-group-form .error-text {
+    color: rgb(255, 85, 85);
+}
+
+.create-group-form-input .error-input {
+    border: 1px solid rgb(255, 85, 85);
 }

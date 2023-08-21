@@ -1,15 +1,22 @@
 import React, { useState } from 'react';
 import useSocket from '../../hooks/useSocket';
 import useAuth from '../../hooks/useAuth';
+import isAlphanumeric from 'validator/lib/isAlphanumeric';
+import blacklist from 'validator/lib/blacklist';
 
 function AddFriend() {
 
     const [input, setInput] = useState('');
     const [errorMessage, setErrorMessage] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
     const { user } = useAuth();
     const { socket } = useSocket();
 
     const sendFriendRequest = async (username) => {
+        if ((!isAlphanumeric(username)) || username !== blacklist(username, '!@#$%^&*()')) {
+            setErrorMessage('Username can only be alphanumeric');
+            return false;
+        }
         try {
             const response = await fetch(`http://localhost:8000/api/addFriend/`, {
                 method: 'POST',
@@ -22,21 +29,29 @@ function AddFriend() {
             if (response.ok) {
                 const data = await response.json();
                 socket.emit('sendFriendRequest', [data.request.sender.username, data.request.receiver.username], data.request);
+                setErrorMessage('');
+                setIsLoading(false);
+                return;
             } else if (response.status === 401) {
                 const data = await response.json();
                 setErrorMessage(data.message);
+                setIsLoading(false);
+                return;
             } else {
                 console.log(`Unable to send friend request`);
+                setIsLoading(false);
+                return;
             }
         } catch (error) {
             console.error(`Error fetching user's room: ${error}`);
         }
     };
 
-    const handleSendFriendRequest = (e) => {
+    const handleSendFriendRequest = async (e) => {
+        setIsLoading(true);
         e.preventDefault();
         if (input.toLowerCase() !== user) {
-            sendFriendRequest(input.toLowerCase())
+            await sendFriendRequest(input.toLowerCase())
         } else {
             setErrorMessage('You cannot send a friend request to yourself');
         }
@@ -61,7 +76,7 @@ function AddFriend() {
                         }}
                     />
                 </div>
-                <button className='add-friend-button' type='submit' onClick={(e) => { handleSendFriendRequest(e) }}>
+                <button className='add-friend-button' type='submit' disabled={isLoading} onClick={(e) => { handleSendFriendRequest(e) }}>
                     <span className='add-friend-button-text'>
                         Send Friend Request
                     </span>

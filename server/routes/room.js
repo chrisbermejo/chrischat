@@ -6,6 +6,8 @@ const pool = require('../database/PostgreSQL');
 const jwt = require('jsonwebtoken');
 const { v4: uuidv4 } = require('uuid');
 
+const validator = require('validator');
+
 require('dotenv').config();
 
 let GROUP_PICTURE_INDEX = 0;
@@ -151,7 +153,7 @@ router.get('/api/room/:roomID/messages', verifyAccessToken, async (req, res) => 
         conversationMessages = result.rows;
     }
 
-    res.json(conversationMessages);
+    return res.json(conversationMessages);
 });
 
 router.get('/api/user/rooms', verifyAccessToken, async (req, res) => {
@@ -212,7 +214,7 @@ router.get('/api/user/rooms', verifyAccessToken, async (req, res) => {
     `;
     const result = await pool.query(selectChatQuery, [req.user.username]);
     const conversations = result.rows;
-    res.json(conversations);
+    return res.json(conversations);
 });
 
 router.get('/api/user/:username/profilePicture', verifyAccessToken, async (req, res) => {
@@ -223,12 +225,26 @@ router.get('/api/user/:username/profilePicture', verifyAccessToken, async (req, 
         `;
     const result = await pool.query(selectPictureQuery, [userID]);
     userPicture = result.rows[0].picture;
-    res.json(userPicture);
+    return res.json(userPicture);
 });
 
 router.post('/createConversation', verifyAccessToken, async (req, res) => {
 
     const { name, users } = req.body;
+
+    if (!validator.isAlphanumeric(name)) {
+        return res.status(409).send({
+            name: true,
+            nameMessage: 'GROUP NAME - Enter valid group name'
+        });
+    }
+
+    if (users.length <= 2) {
+        return res.status(409).send({
+            user: true,
+            userMessage: 'GROUP PARTICIPANTS - Enter at least 2 participants'
+        });
+    }
 
     if (GROUP_PICTURE_INDEX >= 10) {
         GROUP_PICTURE_INDEX = 0;
@@ -262,10 +278,10 @@ router.post('/createConversation', verifyAccessToken, async (req, res) => {
         const newConv = insertResults.rows[0];
 
         GROUP_PICTURE_INDEX++;
-        res.status(201).send({ chat_name: newConv.group_name, chat_picture: newConv.group_picture, chatid: chatid, participants_count: newConv.participants_count, recentmessagedate: newConv.recentmessagedate, type: "group" });
+        return res.status(201).send({ chat_name: newConv.group_name, chat_picture: newConv.group_picture, chatid: chatid, participants_count: newConv.participants_count, recentmessagedate: newConv.recentmessagedate, type: "group", participants: users });
     } catch (error) {
         console.error('Error creating conversation:', error);
-        res.status(500).send({ error: 'An error occurred while creating the conversation' });
+        return res.status(500).send({ error: 'An error occurred while creating the conversation' });
     }
 });
 
@@ -283,7 +299,7 @@ router.post('/api/addFriend/', verifyAccessToken, async (req, res) => {
         const resultReceiverID = await pool.query(selectReceiverID, [receiver]);
 
         if (!(resultReceiverID.rows.length) || !(resultSenderID.rows.length)) {
-            res.status(401).send({ message: 'User not found' });
+            return res.status(401).send({ message: 'User not found' });
         }
 
         const selectRelationshipQuery = `
@@ -295,9 +311,9 @@ router.post('/api/addFriend/', verifyAccessToken, async (req, res) => {
         const result = await pool.query(selectRelationshipQuery, [resultSenderID.rows[0].userid, resultReceiverID.rows[0].userid]);
 
         if (result.rows.length > 0 && result.rows[0].status === 'accepted') {
-            res.status(401).send({ message: 'Already friends with the user!' });
+            return res.status(401).send({ message: 'Already friends with the user!' });
         } else if (result.rows.length > 0 && result.rows[0].status === 'pending') {
-            res.status(401).send({ message: 'Friend Request already sent!' });
+            return res.status(401).send({ message: 'Friend Request already sent!' });
         } else if (result.rows.length > 0 && result.rows[0].status === 'unfriended') {
             const query = `UPDATE useruserrelationship SET status = 'pending' WHERE receiver = $1 AND sender = $2;`;
             const updateResults = await pool.query(query, [resultReceiverID.rows[0].userid, resultSenderID.rows[0].userid]);
@@ -317,7 +333,7 @@ router.post('/api/addFriend/', verifyAccessToken, async (req, res) => {
                     LIMIT 1
                 `;
             const sendingResult = await pool.query(sendingQuery, [resultSenderID.rows[0].userid, resultReceiverID.rows[0].userid]);
-            res.status(200).send({ request: sendingResult.rows[0], message: 'Friend request sent successfully' });
+            return res.status(200).send({ request: sendingResult.rows[0], message: 'Friend request sent successfully' });
         } else {
             const insertRelationshipQuery = `
                     INSERT INTO useruserrelationship (sender, receiver, status)
@@ -340,11 +356,11 @@ router.post('/api/addFriend/', verifyAccessToken, async (req, res) => {
                 `;
             const sendingResult = await pool.query(sendingQuery, [resultSenderID.rows[0].userid, resultReceiverID.rows[0].userid]);
 
-            res.status(200).send({ request: sendingResult.rows[0], message: 'Friend request sent successfully' });
+            return res.status(200).send({ request: sendingResult.rows[0], message: 'Friend request sent successfully' });
         }
     } catch (error) {
         console.error('Error adding friend:', error);
-        res.status(500).send({ error: 'An error occurred while adding the friend' });
+        return res.status(500).send({ error: 'An error occurred while adding the friend' });
     }
 });
 
@@ -373,7 +389,7 @@ router.get('/api/user/friendlist', verifyAccessToken, async (req, res) => {
     const result = await pool.query(query, [req.user.username, 'unfriended']);
     const friendList = result.rows;
 
-    res.json(friendList);
+    return res.json(friendList);
 });
 
 router.delete('/api/deleteRequest', verifyAccessToken, async (req, res) => {
@@ -384,11 +400,11 @@ router.delete('/api/deleteRequest', verifyAccessToken, async (req, res) => {
         const query = ` DELETE FROM useruserrelationship WHERE receiver = $1 AND sender = $2; `
         await pool.query(query, [receiver, sender]);
 
-        res.status(200).send({ message: 'Declining friend request successfully' });
+        return res.status(200).send({ message: 'Declining friend request successfully' });
 
     } catch (error) {
         console.error('Error declining friend request:', error);
-        res.status(500).send({ error: 'An error occurred while declining friend request' });
+        return res.status(500).send({ error: 'An error occurred while declining friend request' });
     }
 });
 
@@ -448,6 +464,7 @@ router.post('/api/acceptRequest', verifyAccessToken, async (req, res) => {
                 participants_count: 2,
                 recentmessagedate: insertResults.rows[0].recentmessagedate,
                 online: resultSenderID.rows[0].online,
+                participants: [resultSenderID.rows[0].username, resultReceiverID.rows[0].username]
             }
 
             const forSender = {
@@ -458,8 +475,9 @@ router.post('/api/acceptRequest', verifyAccessToken, async (req, res) => {
                 participants_count: 2,
                 recentmessagedate: insertResults.rows[0].recentmessagedate,
                 online: resultReceiverID.rows[0].online,
+                participants: [resultSenderID.rows[0].username, resultReceiverID.rows[0].username]
             }
-            res.status(200).send({
+            return res.status(200).send({
                 newChat: true,
                 forReceiver: forReceiver,
                 forSender: forSender,
@@ -471,7 +489,7 @@ router.post('/api/acceptRequest', verifyAccessToken, async (req, res) => {
             const userOnlineStatus = `SELECT online FROM users WHERE userid = $1;`
             const receiverOnlineStatus = await pool.query(userOnlineStatus, [receiver]);
             const senderOnlineStatus = await pool.query(userOnlineStatus, [sender]);
-            res.status(200).send({
+            return res.status(200).send({
                 newChat: false,
                 forReceiver: false,
                 forSender: false,
@@ -482,7 +500,7 @@ router.post('/api/acceptRequest', verifyAccessToken, async (req, res) => {
         }
     } catch (error) {
         console.error('Error accepting friend request:', error);
-        res.status(500).send({ error: 'An error occurred while accepting friend request' });
+        return res.status(500).send({ error: 'An error occurred while accepting friend request' });
     }
 });
 
@@ -494,11 +512,11 @@ router.post('/api/removeFriend', verifyAccessToken, async (req, res) => {
         const query = `UPDATE useruserrelationship SET status = 'unfriended' WHERE receiver = $1 AND sender = $2;`;
         await pool.query(query, [receiver, sender]);
 
-        res.status(200).send({ message: 'Removing friend successfully' });
+        return res.status(200).send({ message: 'Removing friend successfully' });
 
     } catch (error) {
         console.error('Error removing friend:', error);
-        res.status(500).send({ error: 'An error occurred while removing friend' });
+        return res.status(500).send({ error: 'An error occurred while removing friend' });
     }
 });
 

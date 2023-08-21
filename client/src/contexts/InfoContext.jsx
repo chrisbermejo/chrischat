@@ -1,7 +1,7 @@
 import React, { createContext, useEffect, useState, useRef } from 'react';
 import useSocket from '../hooks/useSocket';
 import useAuth from '../hooks/useAuth';
-import { useQuery } from '@tanstack/react-query'
+import { useQuery } from '@tanstack/react-query';
 
 export const InfoContext = createContext();
 
@@ -42,7 +42,9 @@ export const InfoProvider = ({ children }) => {
 
     const openDialog = (type) => {
         setDialogType(type);
-        dialogRef.current.showModal();
+        if (type !== 'NONE') {
+            dialogRef.current.showModal();
+        }
     };
 
     const handleFriendVisible = () => {
@@ -66,7 +68,6 @@ export const InfoProvider = ({ children }) => {
 
     const fetchRoomMessages = async (chatid, date) => {
         try {
-            console.log('fetching...', chatid)
             const response = await fetch((!date ? `http://localhost:8000/api/room/${chatid}/messages` : `http://localhost:8000/api/room/${chatid}/messages/?date=${date}`), {
                 method: 'GET',
                 credentials: 'include',
@@ -143,6 +144,7 @@ export const InfoProvider = ({ children }) => {
 
     const fetchProfilePictureForUser = async (username) => {
         try {
+            console.log('fetching for user:', username)
             const response = await fetch(`http://localhost:8000/api/user/${username}/profilePicture`);
 
             if (response.ok) {
@@ -182,6 +184,7 @@ export const InfoProvider = ({ children }) => {
         queryFn: async () => {
             await fetchRoomMessages(currentTab.conversationID, conversationMessages[currentTab.conversationID]?.[0]?.date);
             await fetchParticipantsProfilePictures(currentTab.participantsList);
+            setRoomClicked((prev) => ({ ...prev, [currentTab.conversationID]: true, }));
             return true;
         },
         refetchOnWindowFocus: false,
@@ -193,9 +196,6 @@ export const InfoProvider = ({ children }) => {
             setCurrentTab((prevCurrentTab) => ({ ...prevCurrentTab, type: 'friend', conversationID: null, conversationName: null, conversationPicture: null, participantsList: null }));
         } else if (isAuthenticated && ((tab.type === 'group') || (tab.type === 'private'))) {
             setCurrentTab((prevCurrentTab) => ({ ...prevCurrentTab, type: tab.type, conversationID: tab.chatid, conversationName: tab.chat_name, conversationPicture: tab.chat_picture, participantsList: tab.participants }));
-            if (!conversationMessages[tab.chatid] || !(roomClicked[tab.chatid] || false)) {
-                setRoomClicked((prev) => ({ ...prev, [tab.chatid]: true, }));
-            }
         }
     };
 
@@ -244,6 +244,7 @@ export const InfoProvider = ({ children }) => {
                 });
                 if (type) {
                     setFetchedConversations((prev) => [newChat, ...prev]);
+                    setProfilePictures((prevProfilePictures) => ({ ...prevProfilePictures, [newChat.chat_name]: newChat.chat_picture }));
                 }
             });
 

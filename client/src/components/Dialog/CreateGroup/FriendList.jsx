@@ -1,7 +1,7 @@
 import useAuth from '../../../hooks/useAuth';
 import './CreateGroup.css';
 
-export default function FriendList({ filteredFriendList, setSelectedFriends }) {
+export default function FriendList({ filteredFriendList, setSelectedFriends, error, setError }) {
     const { user } = useAuth();
 
     const handleFriendSelection = (username) => {
@@ -13,11 +13,16 @@ export default function FriendList({ filteredFriendList, setSelectedFriends }) {
     };
 
     return (
-        <div className='friend-list-selector'>
-            {filteredFriendList.map((friend, index) => (
-                <Friend key={index} friend={friend} user={user} handleFriendSelection={handleFriendSelection} />
-            ))}
-        </div>
+        <>
+            <label htmlFor='name' className={error.user ? 'error-text' : ''}>{error.userMessage}</label>
+            <div className={error.user ? 'friend-list-selector error-input' : 'friend-list-selector'} onClick={() => {
+                setError((prev) => ({ ...prev, user: false, userMessage: 'FRIENDS' }))
+            }}>
+                {filteredFriendList.map((friend, index) => (
+                    <Friend key={index} friend={friend} user={user} handleFriendSelection={handleFriendSelection} />
+                ))}
+            </div>
+        </>
     )
 };
 

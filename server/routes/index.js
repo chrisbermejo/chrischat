@@ -2,6 +2,8 @@ const express = require('express');
 const bcrypt = require('bcrypt');
 const router = express.Router();
 
+const validator = require('validator');
+
 const pool = require('../database/PostgreSQL');
 const { v4: uuidv4 } = require('uuid');
 
@@ -25,8 +27,71 @@ const PROFILE_PICTURE_ARRAY = [
     'https://media.discordapp.net/attachments/1028895750819692616/1138581413373943818/blank-profile-picture-red.png'
 ];
 
+const passwordTest = (e) => {
+    let validated = false
+    if (e.length < 8) {
+        validated = true;
+    }
+    if (!/\d/.test(e)) {
+        validated = true;
+    }
+    if (!/[a-z]/.test(e)) {
+        validated = true;
+    }
+    if (!/[A-Z]/.test(e)) {
+        validated = true;
+    }
+    if (!/[^0-9a-zA-Z]/.test(e)) {
+        validated = true;
+    }
+    return validated;
+}
+
 router.post('/register', async (req, res) => {
     const { username, email, password } = req.body;
+
+    if (!username) {
+        return res.status(409).send({
+            username: true,
+            usernameMessage: 'USERNAME - Username is required'
+        });
+    }
+    if (!validator.isAlphanumeric(username)) {
+        return res.status(409).send({
+            username: true,
+            usernameMessage: 'USERNAME - Username can only contain letters and numbers'
+        });
+    }
+    if (username.length < 4 || username.length > 20) {
+        return res.status(409).send({
+            username: true,
+            usernameMessage: 'USERNAME - Username must be between 4 and 20 characters'
+        });
+    }
+    if (!email) {
+        return res.status(409).send({
+            email: true,
+            emailMessage: 'EMAIL - Email is required'
+        });
+    }
+    if (!validator.isEmail(email)) {
+        return res.status(409).send({
+            email: true,
+            emailMessage: 'EMAIL - Email is not valid'
+        });
+    }
+    if (!password) {
+        return res.status(409).send({
+            password: true,
+            passwordMessage: 'PASSWORD - Password is required'
+        });
+    }
+    if (passwordTest(password)) {
+        return res.status(409).send({
+            password: true,
+            passwordMessage: 'PASSWORD - Password must contain at least one number, one uppercase letter, one lowercase letter, and one special character'
+        });
+    }
 
     const checkUsernameQuery = `
             SELECT COUNT(*) FROM users WHERE username = $1
@@ -35,9 +100,6 @@ router.post('/register', async (req, res) => {
     const usernameResult = await pool.query(checkUsernameQuery, [username]);
     const usernameTaken = usernameResult.rows[0].count > 0;
 
-    if (usernameTaken) {
-        return res.status(409).send({ message: 'Username already taken' });
-    }
     // Check if email is taken
     const checkEmailQuery = `
             SELECT COUNT(*) FROM users WHERE email = $1
@@ -46,8 +108,35 @@ router.post('/register', async (req, res) => {
     const emailResult = await pool.query(checkEmailQuery, [email]);
     const emailTaken = emailResult.rows[0].count > 0;
 
+    if (emailTaken && usernameTaken) {
+        return res.status(409).send({
+            username: true,
+            usernameMessage: 'USERNAME - Username is taken',
+            email: true,
+            emailMessage: 'EMAIL - Email is taken',
+            password: false,
+            passwordMessage: 'PASSWORD'
+        });
+    }
+    if (usernameTaken) {
+        return res.status(409).send({
+            username: true,
+            usernameMessage: 'USERNAME - Username is taken',
+            email: false,
+            emailMessage: 'EMAIL',
+            password: false,
+            passwordMessage: 'PASSWORD'
+        });
+    }
     if (emailTaken) {
-        return res.status(409).send({ message: 'Email already registered' });
+        return res.status(409).send({
+            username: false,
+            usernameMessage: 'USERNAME',
+            email: true,
+            emailMessage: 'EMAIL - Email is taken',
+            password: false,
+            passwordMessage: 'PASSWORD'
+        });
     }
 
     const hashedPassword = await bcrypt.hash(password, HASH_COUNT); // 10 is the number of rounds for hashing
@@ -110,7 +199,7 @@ router.post('/login', async (req, res) => {
         if (!user) {
             return res.status(401).send({ message: 'Invalid credentials' });
         }
-        console.log(user)
+
         const passwordMatch = await bcrypt.compare(password, user.password);
 
         if (!passwordMatch) {

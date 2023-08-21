@@ -8,14 +8,14 @@ import { useEffect } from 'react';
 
 export default function Dialog() {
 
-    const { dialogRef, dialogType } = useInfo();
+    const { dialogRef, dialogType, setDialogType } = useInfo();
 
     useEffect(() => {
         const dialogElement = dialogRef.current;
         const HandleDialogClick = (e) => {
             if (e.target.nodeName === 'DIALOG') {
-                console.log('closing dialog')
                 dialogRef.current.close();
+                setDialogType('NONE');
             }
         }
         if (dialogElement) {
@@ -30,7 +30,7 @@ export default function Dialog() {
 
     return (
         <dialog className='dialog' ref={dialogRef} >
-            {dialogType === 'logout' ? <Logout dialogRef={dialogRef} /> : dialogType === 'setting' ? <UserProfile dialogRef={dialogRef} /> : dialogType === 'create-dm' ? <CreateGroup /> : null}
+            {dialogType === 'logout' ? <Logout dialogRef={dialogRef} /> : dialogType === 'setting' ? <UserProfile dialogRef={dialogRef} /> : dialogType === 'create-dm' ? <CreateGroup dialogRef={dialogRef} /> : null}
         </dialog >
     )
 }
