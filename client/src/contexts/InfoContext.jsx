@@ -51,6 +51,34 @@ export const InfoProvider = ({ children }) => {
         setAddFriendVisible((prev) => { return !prev });
     };
 
+    function customSort(a, b) {
+        const getStatusOrder = (status) => {
+            if (status === 'accepted') return 1;
+            if (status === 'pending') return 3;
+            return 2;
+        };
+
+        const isOnline = (user) => user && user.online === true;
+
+        if (getStatusOrder(a.status) !== getStatusOrder(b.status)) {
+            return getStatusOrder(a.status) - getStatusOrder(b.status);
+        }
+
+        if (a.status !== 'pending' && b.status !== 'pending') {
+            if (isOnline(a.sender) !== isOnline(b.sender)) {
+                return isOnline(b.sender) - isOnline(a.sender);
+            }
+
+            if (isOnline(a.receiver) !== isOnline(b.receiver)) {
+                return isOnline(b.receiver) - isOnline(a.receiver);
+            }
+        }
+
+        const usernameA = (a.sender.username !== user && a.sender.username) || (a.receiver.username !== user && a.receiver.username);
+        const usernameB = (b.sender.username !== user && b.sender.username) || (b.receiver.username !== user && b.receiver.username);
+        return usernameA.localeCompare(usernameB);
+    }
+
     const sendMessage = () => {
         if (message !== '' && currentTab.conversationID !== null) {
 
@@ -129,6 +157,7 @@ export const InfoProvider = ({ children }) => {
             });
             if (response.ok) {
                 const data = await response.json();
+                data.sort(customSort);
                 setFriendList(data);
             }
             else if (response.status === 401) {
@@ -219,6 +248,9 @@ export const InfoProvider = ({ children }) => {
 
             socket.on('receiveFriendRequest', (data) => {
                 setFriendList((prev) => [...prev, data]);
+                setFriendList((prevFriendList) => {
+                    return prevFriendList.sort(customSort);
+                });
             });
 
             socket.on('receiveDelcineRequest', (data) => {
@@ -226,6 +258,9 @@ export const InfoProvider = ({ children }) => {
                     return prevFriendList.filter(
                         (friend) => !(friend.receiver.userid === data.receiver && friend.sender.userid === data.sender)
                     );
+                });
+                setFriendList((prevFriendList) => {
+                    return prevFriendList.sort(customSort);
                 });
             });
 
@@ -246,6 +281,9 @@ export const InfoProvider = ({ children }) => {
                     setFetchedConversations((prev) => [newChat, ...prev]);
                     setProfilePictures((prevProfilePictures) => ({ ...prevProfilePictures, [newChat.chat_name]: newChat.chat_picture }));
                 }
+                setFriendList((prevFriendList) => {
+                    return prevFriendList.sort(customSort);
+                });
             });
 
             socket.on('receiveConversation', (data) => {
@@ -258,6 +296,9 @@ export const InfoProvider = ({ children }) => {
                     return prevFriendList.filter(
                         (friend) => !(friend.receiver.userid === data.receiver.userid && friend.sender.userid === data.sender.userid)
                     );
+                });
+                setFriendList((prevFriendList) => {
+                    return prevFriendList.sort(customSort);
                 });
             });
 
@@ -282,6 +323,9 @@ export const InfoProvider = ({ children }) => {
                             }
                             return friendList;
                         });
+                    });
+                    setFriendList((prevFriendList) => {
+                        return prevFriendList.sort(customSort);
                     });
                 }
             });
