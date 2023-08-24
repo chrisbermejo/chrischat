@@ -2,7 +2,7 @@ import useInfo from '../../hooks/useInfo';
 
 function FriendListHeader() {
 
-    const { handleFriendVisible, addFriendVisible } = useInfo();
+    const { handleFriendVisible, addFriendVisible, filter, setFilter } = useInfo();
 
     return (
         <div className='chatroom-title-container-container'>
@@ -15,9 +15,9 @@ function FriendListHeader() {
                     <div className='line'></div>
                     <div className='friend-nav'>
                         <div className='friend-nav-tabs'>
-                            <div className='friend-nav-tab'>All</div>
-                            <div className='friend-nav-tab'>Online</div>
-                            <div className='friend-nav-tab'>Pending</div>
+                            <div onClick={() => setFilter('all')} className={filter === 'all' ? 'friend-nav-tab current-friend-filter' : 'friend-nav-tab'}>All</div>
+                            <div onClick={() => setFilter('online')} className={filter === 'online' ? 'friend-nav-tab current-friend-filter' : 'friend-nav-tab'}>Online</div>
+                            <div onClick={() => setFilter('pending')} className={filter === 'offline' ? 'friend-nav-tab current-friend-filter' : 'friend-nav-tab'}>Pending</div>
                         </div>
                         <button className={addFriendVisible ? 'add-friend-tab-button add-friend-tab-button-active' : 'add-friend-tab-button'} onClick={handleFriendVisible}><span className='add-friend-tab-button-text'>Add Friend</span></button>
                     </div>

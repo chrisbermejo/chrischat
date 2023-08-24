@@ -27,10 +27,14 @@ export const InfoProvider = ({ children }) => {
         conversationPicture: null,
         participantsList: null
     });
+    //Current Filter on friendlist
+    const [filter, setFilter] = useState('all');
     //Boolean for real time message 
     const [roomClicked, setRoomClicked] = useState({});
 
-    const [friendList, setFriendList] = useState([])
+    const [friendList, setFriendList] = useState([]);
+
+    const [filterFriendList, setFilterFriendList] = useState([]);
 
     const chatMessage = useRef(null);
 
@@ -348,6 +352,16 @@ export const InfoProvider = ({ children }) => {
         // eslint-disable-next-line
     }, [isAuthenticated, user, socket]);
 
+    useEffect(() => {
+        setCurrentTab({
+            type: 'friend',
+            conversationID: null,
+            conversationName: null,
+            conversationPicture: null,
+            participantsList: null
+        });
+        setFilter('all');
+    }, [])
 
     useEffect(() => {
         if (fetchedConversations.length > 0 && socket) {
@@ -382,7 +396,11 @@ export const InfoProvider = ({ children }) => {
             setDialogType,
             openDialog,
             fetchingRoomAndFriendList,
-            fetchingRoomMessages
+            fetchingRoomMessages,
+            filter,
+            setFilter,
+            filterFriendList,
+            setFilterFriendList
         }}>
             {children}
         </InfoContext.Provider>

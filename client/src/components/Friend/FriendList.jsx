@@ -2,10 +2,9 @@ import useInfo from '../../hooks/useInfo';
 import AddFriend from './AddFriend';
 
 import FriendListMap from './FriendListMap';
-
 function FriendList() {
 
-    const { friendList, addFriendVisible, fetchingRoomAndFriendList } = useInfo();
+    const { friendList, addFriendVisible, fetchingRoomAndFriendList, filterFriendList } = useInfo();
 
     return (
         <div className='friend-tab'>
@@ -23,7 +22,7 @@ function FriendList() {
                     fetchingRoomAndFriendList.isLoading === true ?
                         ' ' :
                         fetchingRoomAndFriendList.isSuccess === true ?
-                            friendList.length : 0
+                            filterFriendList.length : 0
                 }
             </h5>
             <FriendListMap />
