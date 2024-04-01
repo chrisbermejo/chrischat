@@ -1,6 +1,6 @@
 # Real-Time Messaging App
 
-Welcome to the GitHub repository of `<Project-Name>`, a real-time messaging application that brings your communication to life. Inspired by the intuitive user interface of Discord, `<Project-Name>` is built using React, Express.js, and PostgreSQL to deliver a seamless and dynamic chatting experience. Whether it's private direct messages (DMs), group chats, or creating and managing friend lists, `<Project-Name>` has it all, in real time.
+A real-time messaging application that brings your communication to life. Inspired by the intuitive user interface of Discord, Built using React, Express.js, and PostgreSQL to deliver a seamless and dynamic chatting experience. Whether it's private direct messages (DMs), group chats, or creating and managing friend lists, it all in real time.
 
 ## Features
 
