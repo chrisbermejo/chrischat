@@ -15,3 +15,12 @@ A real-time messaging application that brings your communication to life. Inspir
 - React - The web framework used for the frontend.
 - Express.js - The backend framework used.
 - PostgreSQL - The database used for storing user data and messages.
+
+## Test Account
+
+You can use the following credentials to access a test account on the live demo:
+
+- **Username:** testaccount
+- **Password:** b9!WW53Q+mr";.,
+
+Alternatively, you can create your own account by following the registration process on the live demo.
